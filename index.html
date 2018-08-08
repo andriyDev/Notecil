@@ -2,11 +2,17 @@
 	<head>
 		<title>Pen Editor</title>
 		<link href="style.css" rel="stylesheet"></link>
+		<script>window.$ = window.jQuery = require('./jquery.slim.min.js');</script>
+		<script src="index.js"></script>
 	</head>
-	<body>
+	<body onload="init();">
 		<div class="mainContainer">
-			<div class="documents"></div>
-			<div class='doc'></div>
+			<div id="document_list" class="documents">
+			</div>
+			<div id='doc' class='doc'>
+				<svg id='doc_display' width="100%" height="100%" viewBox="0 0 1 1">
+				</svg>
+			</div>
 		</div>
 	</body>
 </html>
