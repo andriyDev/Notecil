@@ -1,0 +1,28 @@
+
+html, body
+{
+	margin: 0;
+	padding: 0;
+}
+
+.mainContainer
+{
+	display: flex;
+	flex-direction: row;
+}
+
+.documents
+{
+	flex-basis: auto;
+	width: 200px;
+	height: 100%;
+	background-color: #BFFFF1;
+}
+
+.doc
+{
+	flex-grow: 1;
+	height: 100%;
+	background-color: #EDEDED;
+}
+
