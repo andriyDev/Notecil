@@ -1,6 +1,6 @@
 
 // Constants
-const distanceForLine = 0;
+const distanceForLine = 100;
 
 // State
 
@@ -21,6 +21,7 @@ function init()
 	doc_display.on("pointerdown", handlePointerDown, window);
 	doc_display.on("pointerup", handlePointerUp, window);
 	doc_display.on("pointermove", handlePointerMove, window);
+	doc_display.viewbox(0,0,1000,1000);
 }
 
 document.addEventListener("DOMContentLoaded", init);
@@ -54,24 +55,25 @@ function onMouseDown(ev)
 {
 	if(ev.button == 0) // LMB: Draw
 	{
-		lastDrawPoint = doc_display.point(ev.screenX, ev.screenY);
-		currPlot = "M"+lastDrawPoint.x + " " + lastDrawPoint.y + "L";
-		currDrawPath = doc_display.path(currPlot).attr({fill: null, stroke: 'black', "stroke-width": 5});
+		var pt = doc_display.point(ev.clientX, ev.clientY);
+		lastDrawPoint = {x: ev.clientX, y: ev.clientY};
+		currPlot = "M" + pt.x + " " + pt.y;
+		currDrawPath = doc_display.path(currPlot).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
 	}
 	else if(ev.button == 2) // RMB: Pan
 	{
-		panStart = doc_display.point(ev.screenX, ev.screenY);
+		panStart = doc_display.point(ev.clientX, ev.clientY);
 	}
 }
 
 function onPenDown(ev)
 {
-	
+
 }
 
 function onTouchDown(ev)
 {
-	
+
 }
 
 // Event handler for when a pointer is up.
@@ -102,8 +104,8 @@ function onMouseUp(ev)
 {
 	if(ev.button == 0) // LMB: Draw
 	{
-		lastDrawPoint = doc_display.point(ev.screenX, ev.screenY);
-		currPlot += lastDrawPoint.x + " " + lastDrawPoint.y + " ";
+		var pt = doc_display.point(ev.clientX, ev.clientY);
+		currPlot += "L" + pt.x + " " + pt.y;
 		currDrawPath.plot(currPlot);
 		lastDrawPoint = undefined;
 		currDrawPath = undefined;
@@ -111,10 +113,15 @@ function onMouseUp(ev)
 	}
 	else if(ev.button == 2) // RMB: Pan
 	{
-		var panEnd = doc_display.point(ev.screenX, ev.screenY);
+		var panEnd = doc_display.point(ev.clientX, ev.clientY);
 		var deltaPan = {x: panEnd.x - panStart.x, y: panEnd.y - panStart.y};
 
-		// TODO: Apply the pan
+		var v = doc_display.viewbox();
+		v.x -= deltaPan.x;
+		v.y -= deltaPan.y;
+		doc_display.viewbox(v);
+
+		panStart = undefined;
 	}
 }
 function onPenUp(ev){}
@@ -148,30 +155,29 @@ function onMouseMove(ev)
 {
 	if(lastDrawPoint) // LMB: Draw
 	{
-		console.log("Here");
-		var pt = doc_display.point(ev.screenX, ev.screenY);
+		var pt = doc_display.point(ev.clientX, ev.clientY);
 		var delta = {x: pt.x - lastDrawPoint.x, y: pt.y - lastDrawPoint.y};
-
-		console.log(delta.x * delta.x + delta.y * delta.y);
 
 		// TODO: May want to replace this with DOM coordinates instead.
 		// Is the distance from the last point more than the distance to draw a line?
 		if(delta.x * delta.x + delta.y * delta.y >= distanceForLine * distanceForLine)
 		{
 			// If so, add the new line and set the last draw point to this point.
-			currPlot += pt.x + " " + pt.y + " ";
+			currPlot += "L" + pt.x + " " + pt.y;
 			currDrawPath.plot(currPlot);
-			lastDrawPoint = pt;
+			lastDrawPoint = {x: ev.clientX, y: ev.clientY};
 		}
 	}
 	else if(panStart) // RMB: Pan
 	{
-		var panEnd = doc_display.point(ev.screenX, ev.screenY);
+		var panEnd = doc_display.point(ev.clientX, ev.clientY);
 		var deltaPan = {x: panEnd.x - panStart.x, y: panEnd.y - panStart.y};
 
-		// TODO: Apply the pan
+		var v = doc_display.viewbox();
+		v.x -= deltaPan.x;
+		v.y -= deltaPan.y;
+		doc_display.viewbox(v);
 	}
 }
 function onPenMove(ev){}
 function onTouchMove(ev){}
-
