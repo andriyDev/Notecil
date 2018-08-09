@@ -57,6 +57,38 @@ function handlePointerDown(ev)
 	}
 }
 
+// Given a path that was generated from this code, we can extract the points used to create it.
+// Use this function to do so.
+function extractPlotFromPath(path)
+{
+	// Get the array.
+	var arr = path.array().value;
+	var re = [];
+	for(var i = 0; i < arr.length; i++)
+	{
+		// We have to make sure that this was a path generated from our code.
+		// So it must begin with an M, and then all remaining commands must be C.
+		if(i == 0)
+		{
+			if(arr[0][0] != "M")
+			{
+				throw "Invalid path!";
+			}
+		}
+		else
+		{
+			if(arr[i][0] != "C")
+			{
+				throw "Invalid path!";
+			}
+		}
+		// In both cases, the last two arguments are the x and y of the point.
+		re.push({x: arr[i][arr[i].length - 2], y: arr[i][arr[i].length - 1]});
+	}
+	// Return the list of all points extracted.
+	return re;
+}
+
 // Compute the delta between the two points.
 function getDelta(start, end)
 {
@@ -90,19 +122,27 @@ function GetPlotStr()
 	// We know we have at least 2 points to operate on.
 
 	// For each "middle" point (non-end points), we want to compute their slopes.
+	// We compute the first point's slope.
 	var slopes = [scale(getDelta(currPlot[0], currPlot[1]), plotSmoothingRatio)];
+	// This is based on a blog post by François Romain
+	// Src: https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
+	// To be clear, this implementation is significantly streamlined. Only the core ideas are still present.
 	for(var i = 1; i < currPlot.length - 1; i++)
 	{
 		slopes.push(scale(getDelta(currPlot[i - 1], currPlot[i + 1]), plotSmoothingRatio));
 	}
+	// We also must not forget to compute the last point's slope.
 	slopes.push(scale(getDelta(currPlot[currPlot.length - 2], currPlot[currPlot.length - 1]), plotSmoothingRatio));
+	// Now that we have the slopes, we can use those to generate our bezier command.
 	for(var i = 1; i < currPlot.length; i++)
 	{
-		var delta = getDelta(currPlot[i - 1], currPlot[i]);
+		// Get the absolute tangents.
 		var c1 = {x: slopes[i - 1].x + currPlot[i - 1].x, y: slopes[i - 1].y + currPlot[i - 1].y};
 		var c2 = {x: currPlot[i].x - slopes[i].x, y: currPlot[i].y - slopes[i].y};
+		// Make the command.
 		str += "C" + c1.x + " " + c1.y + " " + c2.x + " " + c2.y + " " + currPlot[i].x + " " + currPlot[i].y;
 	}
+	// Once all commands are appended, return the entire string.
 	return str;
 }
 
@@ -158,6 +198,7 @@ function stopDraw(ev)
 	currPlot.push({x: pt.x, y: pt.y});
 	// Update the path.
 	currDrawPath.plot(GetPlotStr());
+	console.log(extractPlotFromPath(currDrawPath));
 	// Clear everything.
 	currDrawDist = undefined;
 	currDrawPath = undefined;
