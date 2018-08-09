@@ -1,6 +1,6 @@
 
 // Constants
-const distanceForLine = 10;
+const distanceForLine = 3;
 
 // State
 
@@ -10,8 +10,8 @@ var printedPointerNotSupportedMsg = false;
 
 var currDrawPath;
 var currPlot;
+var currDrawDist;
 
-var lastDrawPoint;
 var panStart;
 var zooming = false;
 
@@ -51,35 +51,117 @@ function handlePointerDown(ev)
 	}
 }
 
+function startDraw(ev)
+{
+	// Get the clicked point in SVG coordinates.
+	var pt = doc_display.point(ev.clientX, ev.clientY);
+	// Keep track of the point clicked. This is to detect how far the user has moved.
+	currDrawDist = 0;
+	// Start the plot list.
+	currPlot = "M" + pt.x + " " + pt.y;
+	// Create the path.
+	// TODO: Make attr depend on the current "brush" (as in stroke-width and colour)
+	currDrawPath = doc_display.path(currPlot).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
+}
+
+// Note: Assumes that we started the draw at some point. So make sure at least currDrawDist is valid.
+function moveDraw(ev)
+{
+	// Get the amount the mouse has moved.
+	var delta = {x: ev.movementX, y: ev.movementY};
+
+	// TODO: Use Bezier curves instead of lines to draw smooth lines.
+
+	// Add the amount we moved to the current distance we have moved.
+	currDrawDist += delta.x * delta.x + delta.y * delta.y;
+
+	// Is the distance from the last point more than the distance to draw a line?
+	// This is to decrease file size. No need to add points too often.
+	if(currDrawDist >= distanceForLine * distanceForLine)
+	{
+		// If so, add the new line and set the last draw point to this point.
+		// Compute the clicked point in SVG coordinates.
+		var pt = doc_display.point(ev.clientX, ev.clientY);
+		// Add the point to the plot.
+		currPlot += "L" + pt.x + " " + pt.y;
+		// Update the path.
+		currDrawPath.plot(currPlot);
+		currDrawDist = 0;
+	}
+}
+
+function stopDraw(ev)
+{
+	// Calculate the clicked point in SVG coordinates.
+	var pt = doc_display.point(ev.clientX, ev.clientY);
+	// Add the last point to the plot.
+	currPlot += "L" + pt.x + " " + pt.y;
+	// Update the path.
+	currDrawPath.plot(currPlot);
+	// Clear everything.
+	currDrawDist = undefined;
+	currDrawPath = undefined;
+	currPlot = undefined;
+}
+
+function startPan(ev)
+{
+	// Just store the start point of the pan so we can later calculate the delta of the pan.
+	panStart = doc_display.point(ev.clientX, ev.clientY);
+}
+
+function movePan(ev)
+{
+	// Get the clicked point in SVG coordinates.
+	var panEnd = doc_display.point(ev.clientX, ev.clientY);
+	// Get how much the pan moved.
+	var deltaPan = {x: panEnd.x - panStart.x, y: panEnd.y - panStart.y};
+
+	// Use the delta to adjust the viewbox.
+	var v = doc_display.viewbox();
+	v.x -= deltaPan.x;
+	v.y -= deltaPan.y;
+	doc_display.viewbox(v);
+}
+
+function stopPan(ev)
+{
+	movePan(ev);
+	// Clear the panning variable.
+	panStart = undefined;
+}
+
 function onMouseDown(ev)
 {
 	if(ev.button == 0) // LMB: Draw
 	{
-		// Get the clicked point in SVG coordinates.
-		var pt = doc_display.point(ev.clientX, ev.clientY);
-		// Keep track of the point clicked. This is to detect how far the user has moved.
-		lastDrawPoint = {x: ev.clientX, y: ev.clientY};
-		// Start the plot list.
-		currPlot = "M" + pt.x + " " + pt.y;
-		// Create the path.
-		// TODO: Make attr depend on the current "brush" (as in stroke-width and colour)
-		currDrawPath = doc_display.path(currPlot).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
+		startDraw(ev);
 	}
 	else if(ev.button == 2) // RMB: Pan
 	{
-		// Just store the start point of the pan so we can later calculate the delta of the pan.
-		panStart = doc_display.point(ev.clientX, ev.clientY);
+		startPan(ev);
 	}
 }
 
 function onPenDown(ev)
 {
-
+	if(ev.button == 0) // Main: Draw
+	{
+		startDraw(ev);
+	}
+	else if(ev.button == 5) // Btn1: Erase
+	{
+		// TODO: Erase
+	}
+	else if(ev.button == 2) // Btn2: Select
+	{
+		// TODO: Select
+	}
 }
 
 function onTouchDown(ev)
 {
-
+	startPan(ev);
 }
 
 // Event handler for when a pointer is up.
@@ -110,36 +192,34 @@ function onMouseUp(ev)
 {
 	if(ev.button == 0) // LMB: Draw
 	{
-		// Calculate the clicked point in SVG coordinates.
-		var pt = doc_display.point(ev.clientX, ev.clientY);
-		// Add the last point to the plot.
-		currPlot += "L" + pt.x + " " + pt.y;
-		// Update the path.
-		currDrawPath.plot(currPlot);
-		// Clear everything.
-		lastDrawPoint = undefined;
-		currDrawPath = undefined;
-		currPlot = undefined;
+		stopDraw(ev);
 	}
 	else if(ev.button == 2) // RMB: Pan
 	{
-		// Get the clicked point in SVG coordinates.
-		var panEnd = doc_display.point(ev.clientX, ev.clientY);
-		// Get how much the pan moved.
-		var deltaPan = {x: panEnd.x - panStart.x, y: panEnd.y - panStart.y};
-
-		// Use the delta to adjust the viewbox.
-		var v = doc_display.viewbox();
-		v.x -= deltaPan.x;
-		v.y -= deltaPan.y;
-		doc_display.viewbox(v);
-
-		// Clear the panning variable.
-		panStart = undefined;
+		stopPan(ev);
 	}
 }
-function onPenUp(ev){}
-function onTouchUp(ev){}
+
+function onPenUp(ev)
+{
+	if(ev.button == 0) // Main: Draw
+	{
+		stopDraw(ev);
+	}
+	else if(ev.button == 5) // Btn1: Erase
+	{
+		// TODO: Erase
+	}
+	else if(ev.button == 2) // Btn2: Select
+	{
+		// TODO: Select
+	}
+}
+
+function onTouchUp(ev)
+{
+	stopPan(ev);
+}
 
 // Event handler for when a pointer has moved.
 function handlePointerMove(ev)
@@ -167,44 +247,29 @@ function handlePointerMove(ev)
 
 function onMouseMove(ev)
 {
-	if(lastDrawPoint) // LMB: Draw
+	if(currDrawDist != undefined) // LMB: Draw
 	{
-		// Get the amount the mouse has moved since the last "waypoint".
-		var delta = {x: ev.clientX - lastDrawPoint.x, y: ev.clientY - lastDrawPoint.y};
-
-		// TODO: Use Bezier curves instead of lines to draw smooth lines.
-
-		// Is the distance from the last point more than the distance to draw a line?
-		// This is to decrease file size. No need to add redundant points if they are too small to notice.
-		if(delta.x * delta.x + delta.y * delta.y >= distanceForLine * distanceForLine)
-		{
-			// If so, add the new line and set the last draw point to this point.
-
-			// Compute the clicked point in SVG coordinates.
-			var pt = doc_display.point(ev.clientX, ev.clientY);
-			// Add the point to the plot.
-			currPlot += "L" + pt.x + " " + pt.y;
-			// Update the path.
-			currDrawPath.plot(currPlot);
-			// Set the last draw point.
-			lastDrawPoint = {x: ev.clientX, y: ev.clientY};
-		}
+		moveDraw(ev);
 	}
 	else if(panStart) // RMB: Pan
 	{
-		var panEnd = doc_display.point(ev.clientX, ev.clientY);
-		var deltaPan = {x: panEnd.x - panStart.x, y: panEnd.y - panStart.y};
-
-		var v = doc_display.viewbox();
-		v.x -= deltaPan.x;
-		v.y -= deltaPan.y;
-		doc_display.viewbox(v);
+		movePan(ev);
 	}
 }
 
 function onPenMove(ev)
 {
-		
+	if(currDrawDist != undefined)
+	{
+		moveDraw(ev);
+	}
+	// TODO: Erase and select
 }
 
-function onTouchMove(ev){}
+function onTouchMove(ev)
+{
+	if(panStart)
+	{
+		movePan(ev);
+	}
+}
