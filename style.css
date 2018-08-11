@@ -85,6 +85,16 @@ html, body
 	background-color: #673ab7;
 }
 
+.sections_add:hover
+{
+	background-color: #5f35aa;
+}
+
+.sections_add:active
+{
+	background-color: #522e92;
+}
+
 .files
 {
 	flex: 1 1;
@@ -126,12 +136,21 @@ html, body
 	background-color: #7e57c2;
 }
 
+.files_add:hover
+{
+	background-color: #7248bc;
+}
+
+.files_add:active
+{
+	background-color: #623ba4;
+}
+
 .mainView
 {
 	flex: 1 1 auto;
-	/*
 	display: flex;
-	flex-direction: column;*/
+	flex-direction: column;
 }
 
 .doc_toolbar
@@ -147,5 +166,18 @@ html, body
 	width: 100%;
 	height: calc(100% - 40px); /* // TODO: Find a way to get rid of this calc. */
 	background-color: #FFFFFF;
+}
+
+/* Source: https://stackoverflow.com/questions/3779534/how-do-i-disable-text-selection-with-css-or-javascript */
+.divBtn {
+	cursor: pointer;
+
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }
 
