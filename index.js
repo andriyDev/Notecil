@@ -7,6 +7,11 @@ var printedPointerNotSupportedMsg = false;
 
 var zooming = false;
 
+const electron = require('electron');
+const fs = require('fs');
+
+var rootList;
+
 function init()
 {
 	// Create the svg view.
@@ -24,6 +29,14 @@ function init()
 
 	// Assign an arbitrary viewbox.
 	doc_display.viewbox(0,0,1000,1000);
+
+	rootList = [];
+	fs.readFile("config.cfg", function(err, data){
+		if (err) throw err;
+		rootList = JSON.parse(data).rootFolders;
+	});
+
 }
 
 document.addEventListener("DOMContentLoaded", init);
+

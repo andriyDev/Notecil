@@ -14,7 +14,7 @@ if(!fs.existsSync("config.cfg"))
 {
 	// If not we need to create one.
 	console.log("Missing config file!");
-	cfg = {window: {x: 0, y: 0, width: 800, height: 600, max: false}, configSave: 18000};
+	cfg = {window: {x: 0, y: 0, width: 800, height: 600, max: false}, configSave: 18000, rootFolders: []};
 	fs.writeFileSync("config.cfg", JSON.stringify(cfg));
 }
 else

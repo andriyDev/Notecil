@@ -206,6 +206,9 @@ function startPinch(pt1, pt2)
 
 function movePinch(pt1, pt2)
 {
+	// TODO: Make this better. Currently, no matter where you pinch on, the screen just zooms in to the center.
+	// The screen SHOULD zoom in to the point that is being pinched on.
+
     var previousCenter = {x: (initialPinchPoints.a.x + initialPinchPoints.b.x) * 0.5, y: (initialPinchPoints.a.y + initialPinchPoints.b.y) * 0.5};
     var previousDelta = {x: initialPinchPoints.b.x - initialPinchPoints.a.x, y: initialPinchPoints.b.y - initialPinchPoints.a.y};
     var previousDist = Math.sqrt(previousDelta.x * previousDelta.x + previousDelta.y * previousDelta.y);
