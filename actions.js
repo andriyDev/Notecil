@@ -164,7 +164,6 @@ function stopDraw(pt)
 	currPlot.push({x: pt.x, y: pt.y});
 	// Update the path.
 	currDrawPath.plot(GetPlotStr());
-	console.log(extractPlotFromPath(currDrawPath));
 	// Clear everything.
 	currDrawDist = undefined;
 	currDrawPath = undefined;

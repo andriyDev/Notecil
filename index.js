@@ -14,6 +14,7 @@ const path = require('path');
 var rootList;
 
 var selectedSection = -1;
+var selectedPage = -1;
 
 function clickedSection()
 {
@@ -35,6 +36,7 @@ function selectSection(i)
 		}
 		// Set the selection and add the correct class.
 		selectedSection = i;
+		selectedPage = -1;
 		$('#section' + selectedSection).addClass('selected_section');
 		regenPages();
 	}
@@ -64,28 +66,49 @@ function regenSections()
 
 function regenPages()
 {
+	// Get the page list and clear it so we can regenerate it.
+	var pages = $('#files_list');
+	pages.empty();
+
 	if(selectedSection == -1)
 	{
 		// TODO: do something when there's no selected section.
 		return;
 	}
-	// Get the page list and clear it so we can regenerate it.
-	var pages = $('#files_list');
-	pages.empty();
 	
 	fs.readFile(path.join(rootList[selectedSection].path, ".section"), (err, data) => {
-		if(err) throw err;
+		if(err)
+		{
+			// If we hit an error, try to create a .section file. If there's still an error, just let it throw.
+			fs.writeFileSync(path.join(rootList[selectedSection].path, ".section"), "[]");
+			// Assign the default empty data.
+			data = "[]";
+		}
 		data = JSON.parse(data);
-		// TODO: Use the .section file to populate the pages list.
+		for(var i = 0; i < data.length; i++)
+		{
+			var new_page = $('<div id="page' + i + '" class="divBtn file_elem"></div>');
+			pages.append(new_page);
+			// TODO: Add a click event listener
+			if(i == selectedPage)
+			{
+				new_page.addClass("selected_file");
+			}
+		}
 	});
 }
 
 function addSection()
 {
 	$('#addSectionOverlay').addClass('showOverlay');
-	$('#addSection_name').attr('value', "New Section");
+	$('#addSection_name').val("New Section");
 	$('#addSection_path').attr('value', "").text("Select a path...");
 	$('#addSection_ok').prop('disabled', true).addClass('dialog_btn_disabled');
+}
+
+function addPage()
+{
+
 }
 
 function selectPath()
@@ -138,7 +161,7 @@ function addSection_ok(ev)
 			throw err;
 			// TODO: Make the dialog box have an error message.
 		}
-		rootList.push({name: $('#addSection_name').attr('value'), path: $('#addSection_path').attr('value')});
+		rootList.push({name: $('#addSection_name').val(), path: $('#addSection_path').attr('value')});
 		fs.writeFile(".sections", JSON.stringify(rootList), function(err){
 			if(err) throw err;
 		});
@@ -199,6 +222,8 @@ function init()
 	$('#addSection_selectPath').on("click", addSection_selectPath);
 	$('#addSection_ok').on("click", addSection_ok);
 	$('#addSection_cancel').on("click", addSection_cancel);
+
+	$('.files_add').on("click", addPage);
 }
 
 document.addEventListener("DOMContentLoaded", init);

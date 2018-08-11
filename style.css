@@ -142,9 +142,35 @@ html, body
 .files_list
 {
 	flex: 1 1;
+	padding-left: 5px;
 
 	overflow-y: auto;
 }
+
+.file_elem
+{
+	width: 100%;
+	height: 70px;
+	margin-top: 5px;
+	border-radius: 5px 0 0 5px;
+
+	text-align: center;
+	vertical-align: middle;
+	line-height: 70px;
+
+	background-color: #7e57c2;
+}
+
+.file_elem:hover { background-color: #7248bc; }
+.file_elem:active { background-color: #623ba4; }
+
+.selected_file
+{
+	background-color: #9575cd;
+}
+
+.selected_file:hover { background-color: #9575cd; }
+.selected_file:active { background-color: #9575cd; }
 
 .files_add
 {
@@ -158,15 +184,8 @@ html, body
 	background-color: #7e57c2;
 }
 
-.files_add:hover
-{
-	background-color: #7248bc;
-}
-
-.files_add:active
-{
-	background-color: #623ba4;
-}
+.files_add:hover { background-color: #7248bc; }
+.files_add:active { background-color: #623ba4; }
 
 .mainView
 {
