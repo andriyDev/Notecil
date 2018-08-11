@@ -16,13 +16,17 @@ var selectedSection = -1;
 
 function selectSection()
 {
+	// When we click on a section, we must first get the index of the section.
 	var i = parseInt(this.id.substring(7));
+	// Only do something if the selected section has changed.
 	if(i != selectedSection)
 	{
+		// As long as a section was previously selected, we need to clear the old selection.
 		if(selectedSection != -1)
 		{
 			$('#section' + selectedSection).removeClass('selected_section');
 		}
+		// Set the selection and add the correct class.
 		selectedSection = i;
 		$('#section' + selectedSection).addClass('selected_section');
 	}
@@ -41,7 +45,8 @@ function regenSections()
 		list.append(section);
 		// Add the event listener for the click.
 		section.on("click", selectSection);
-		if(rootList[i].name == selectedSection)
+		// If this is the currently selected section, we must add the associated class.
+		if(i == selectedSection)
 		{
 			section.addClass('selected_section');
 		}
