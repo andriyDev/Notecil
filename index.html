@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Pen Editor</title>
+		<title>Notecil</title>
 		<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<link href="style.css" rel="stylesheet"></link>
@@ -35,16 +35,16 @@
 				<div class="dialog_vals">
 					<div class="dialog_valRow">
 						<div class="dialog_label">Name</div>
-						<input style="flex: 1 1;" value="New Section"/>
+						<input id="addSection_name" style="flex: 1 1;" value="New Section"/>
 					</div>
 					<div class="dialog_valRow">
 						<div class="dialog_label">Path</div>
-						<div id="addSection_path" style="flex 1 1;"><div style="color: grey; text-align: center">Select a path...</div></div>
+						<div id="addSection_path">Select a path...</div>
 						<div id="addSection_selectPath" class="divBtn selectPath"><i class="material-icons">folder_open</i></div>
 					</div>
 				</div>
 				<div class="dialog_actions">
-					<div id="addSection_ok" class="divBtn dialog_btn" style="margin-right: 1px">Ok</div>
+					<div id="addSection_ok" disabled class="divBtn dialog_btn dialog_btn_disabled" style="margin-right: 1px">Ok</div>
 					<div id="addSection_cancel" class="divBtn dialog_btn" style="margin-left: 1px">Cancel</div>
 				</div>
 			</div>

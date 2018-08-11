@@ -9,15 +9,22 @@ var zooming = false;
 
 const electron = require('electron');
 const fs = require('fs');
+const path = require('path');
 
 var rootList;
 
 var selectedSection = -1;
 
-function selectSection()
+function clickedSection()
 {
 	// When we click on a section, we must first get the index of the section.
 	var i = parseInt(this.id.substring(7));
+	// Select the new section.
+	selectSection(i);
+}
+
+function selectSection(i)
+{
 	// Only do something if the selected section has changed.
 	if(i != selectedSection)
 	{
@@ -29,6 +36,7 @@ function selectSection()
 		// Set the selection and add the correct class.
 		selectedSection = i;
 		$('#section' + selectedSection).addClass('selected_section');
+		regenPages();
 	}
 }
 
@@ -44,18 +52,106 @@ function regenSections()
 		var section = $('<div id="section' + i + '"class="divBtn section_elem">' + rootList[i].name + '</div>');
 		list.append(section);
 		// Add the event listener for the click.
-		section.on("click", selectSection);
+		section.on("click", clickedSection);
 		// If this is the currently selected section, we must add the associated class.
 		if(i == selectedSection)
 		{
 			section.addClass('selected_section');
 		}
 	}
+	regenPages();
+}
+
+function regenPages()
+{
+	if(selectedSection == -1)
+	{
+		// TODO: do something when there's no selected section.
+		return;
+	}
+	// Get the page list and clear it so we can regenerate it.
+	var pages = $('#files_list');
+	pages.empty();
+	
+	fs.readFile(path.join(rootList[selectedSection].path, ".section"), (err, data) => {
+		if(err) throw err;
+		data = JSON.parse(data);
+		// TODO: Use the .section file to populate the pages list.
+	});
 }
 
 function addSection()
 {
 	$('#addSectionOverlay').addClass('showOverlay');
+	$('#addSection_name').attr('value', "New Section");
+	$('#addSection_path').attr('value', "").text("Select a path...");
+	$('#addSection_ok').prop('disabled', true).addClass('dialog_btn_disabled');
+}
+
+function selectPath()
+{
+	var paths = electron.remote.dialog.showOpenDialog(electron.remote.getCurrentWindow(), {properties: ['openDirectory']});
+	if(paths && paths.length > 0)
+	{
+		return paths[0];
+	}
+	else
+	{
+		return undefined;
+	}
+}
+
+function reverseTruncate(str, maxlen)
+{
+	if(str.length <= maxlen)
+	{
+		return str;
+	}
+	else
+	{
+		return "..." + str.substring(str.length - maxlen, str.length);
+	}
+}
+
+function addSection_selectPath()
+{
+	var path = selectPath();
+	if(path)
+	{
+		$('#addSection_path').attr("value", path).text(reverseTruncate(path, 30));
+		$('#addSection_ok').prop('disabled', false).removeClass('dialog_btn_disabled');
+	}
+}
+
+function addSection_ok(ev)
+{
+	var btn = $('#addSection_ok');
+	if(btn.prop('disabled'))
+	{
+		return;
+	}
+
+	// TODO: Create the section.
+	fs.access($('#addSection_path').attr('value'), (err) => {
+		if (err)
+		{
+			throw err;
+			// TODO: Make the dialog box have an error message.
+		}
+		rootList.push({name: $('#addSection_name').attr('value'), path: $('#addSection_path').attr('value')});
+		fs.writeFile(".sections", JSON.stringify(rootList), function(err){
+			if(err) throw err;
+		});
+		selectedSection = rootList.length - 1;
+		regenSections();
+
+		$('#addSectionOverlay').removeClass('showOverlay');
+	});
+}
+
+function addSection_cancel()
+{
+	$('#addSectionOverlay').removeClass('showOverlay');
 }
 
 function init()
@@ -98,8 +194,11 @@ function init()
 	});
 
 	$('.sections_add').on("click", addSection);
-	$('#addSectionOverlay').on("click", function(){ $('#addSectionOverlay').removeClass('showOverlay'); });
+	$('#addSectionOverlay').on("click", addSection_cancel);
 	$('.addSectionDialog').on("click", function(){ return false; });
+	$('#addSection_selectPath').on("click", addSection_selectPath);
+	$('#addSection_ok').on("click", addSection_ok);
+	$('#addSection_cancel').on("click", addSection_cancel);
 }
 
 document.addEventListener("DOMContentLoaded", init);

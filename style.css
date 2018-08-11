@@ -264,6 +264,7 @@ html, body
 	display: flex;
 	width: 100%;
 	flex-direction: row;
+	align-items: center;
 	margin-bottom: 15px;
 }
 
@@ -292,16 +293,35 @@ html, body
 .dialog_btn:hover { background-color: #d0d0d0; }
 .dialog_btn:active { background-color: #c0c0c0; }
 
+.dialog_btn_disabled { background-color: #b0b0b0; }
+.dialog_btn_disabled:hover { background-color: #b0b0b0; }
+.dialog_btn_disabled:active { background-color: #b0b0b0; }
+
 .addSectionDialog
 {
 	width: 400px;
 	height: 195px;
 }
 
+#addSection_path
+{
+	flex: 1 1;
+	border-bottom: solid grey 1px;
+	color: grey;
+	text-align: center;
+}
+
 .selectPath
 {
 	width: 30px;
 	height: 30px;
+
+	margin-left: 10px;
+	
+	text-align: center;
+	vertical-align: middle;
+	line-height: 30px;
+
 	background-color: #dddddd;
 }
 
