@@ -69,17 +69,17 @@ function getVecLen(v)
 	return Math.sqrt(v.x * v.x + v.y * v.y);
 }
 
-function GetPlotStr()
+function GetPlotStr(plot)
 {
 	// If we don't have any points to operate on, just return a blank string.
-	if(!currPlot || currPlot.length == 0)
+	if(!plot || plot.length == 0)
 	{
 		return "";
 	}
 	// We know we have at least 1 point to operate on, so we can start the string.
-	var str = "M" + currPlot[0].x + " " + currPlot[0].y;
+	var str = "M" + plot[0].x + " " + plot[0].y;
 	// If there's no more points, then just return.
-	if(currPlot.length == 1)
+	if(plot.length == 1)
 	{
 		return str;
 	}
@@ -87,24 +87,24 @@ function GetPlotStr()
 
 	// For each "middle" point (non-end points), we want to compute their slopes.
 	// We compute the first point's slope.
-	var slopes = [scale(getDelta(currPlot[0], currPlot[1]), plotSmoothingRatio)];
+	var slopes = [scale(getDelta(plot[0], plot[1]), plotSmoothingRatio)];
 	// This is based on a blog post by François Romain
 	// Src: https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
 	// To be clear, this implementation is significantly streamlined. Only the core ideas are still present.
-	for(var i = 1; i < currPlot.length - 1; i++)
+	for(var i = 1; i < plot.length - 1; i++)
 	{
-		slopes.push(scale(getDelta(currPlot[i - 1], currPlot[i + 1]), plotSmoothingRatio));
+		slopes.push(scale(getDelta(plot[i - 1], plot[i + 1]), plotSmoothingRatio));
 	}
 	// We also must not forget to compute the last point's slope.
-	slopes.push(scale(getDelta(currPlot[currPlot.length - 2], currPlot[currPlot.length - 1]), plotSmoothingRatio));
+	slopes.push(scale(getDelta(plot[plot.length - 2], plot[plot.length - 1]), plotSmoothingRatio));
 	// Now that we have the slopes, we can use those to generate our bezier command.
-	for(var i = 1; i < currPlot.length; i++)
+	for(var i = 1; i < plot.length; i++)
 	{
 		// Get the absolute tangents.
-		var c1 = {x: slopes[i - 1].x + currPlot[i - 1].x, y: slopes[i - 1].y + currPlot[i - 1].y};
-		var c2 = {x: currPlot[i].x - slopes[i].x, y: currPlot[i].y - slopes[i].y};
+		var c1 = {x: slopes[i - 1].x + plot[i - 1].x, y: slopes[i - 1].y + plot[i - 1].y};
+		var c2 = {x: plot[i].x - slopes[i].x, y: plot[i].y - slopes[i].y};
 		// Make the command.
-		str += "C" + c1.x + " " + c1.y + " " + c2.x + " " + c2.y + " " + currPlot[i].x + " " + currPlot[i].y;
+		str += "C" + c1.x + " " + c1.y + " " + c2.x + " " + c2.y + " " + plot[i].x + " " + plot[i].y;
 	}
 	// Once all commands are appended, return the entire string.
 	return str;
@@ -121,7 +121,7 @@ function startDraw(pt)
 	currPlot = [{x: pt.x, y: pt.y}];
 	// Create the path.
 	// TODO: Make attr depend on the current "brush" (as in stroke-width and colour)
-	currDrawPath = doc_display.path(GetPlotStr()).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
+	currDrawPath = doc_display.path(GetPlotStr(currPlot)).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
 }
 
 // Note: Assumes that we started the draw at some point. So make sure at least currDrawDist is valid.
@@ -151,7 +151,7 @@ function moveDraw(pt, pointer)
 		// Add the point to the plot.
 		currPlot.push({x: pt.x, y: pt.y});
 		// Update the path.
-		currDrawPath.plot(GetPlotStr());
+		currDrawPath.plot(GetPlotStr(currPlot));
 		currDrawDist = 0;
 	}
 }
@@ -163,7 +163,7 @@ function stopDraw(pt)
 	// Add the last point to the plot.
 	currPlot.push({x: pt.x, y: pt.y});
 	// Update the path.
-	currDrawPath.plot(GetPlotStr());
+	currDrawPath.plot(GetPlotStr(currPlot));
 	// Clear everything.
 	currDrawDist = undefined;
 	currDrawPath = undefined;
