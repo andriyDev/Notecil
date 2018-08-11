@@ -53,6 +53,11 @@ function regenSections()
 	}
 }
 
+function addSection()
+{
+	$('#addSectionOverlay').addClass('showOverlay');
+}
+
 function init()
 {
 	// Create the svg view.
@@ -91,6 +96,10 @@ function init()
 		// Create the UI for the sections.
 		regenSections();
 	});
+
+	$('.sections_add').on("click", addSection);
+	$('#addSectionOverlay').on("click", function(){ $('#addSectionOverlay').removeClass('showOverlay'); });
+	$('.addSectionDialog').on("click", function(){ return false; });
 }
 
 document.addEventListener("DOMContentLoaded", init);

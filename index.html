@@ -2,6 +2,7 @@
 	<head>
 		<title>Pen Editor</title>
 		<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<link href="style.css" rel="stylesheet"></link>
 		<script>window.$ = window.jQuery = require('./jquery.slim.min.js');</script>
 		<script src="svg.min.js"></script>
@@ -26,6 +27,26 @@
 			<div class='mainView'>
 				<div class="doc_toolbar"></div>
 				<div id='doc' class='doc'></div>
+			</div>
+		</div>
+		<div id="addSectionOverlay" class="overlaybg">
+			<div class="addSectionDialog overlayDialog">
+				<div class="dialog_title">Add Section</div>
+				<div class="dialog_vals">
+					<div class="dialog_valRow">
+						<div class="dialog_label">Name</div>
+						<input style="flex: 1 1;" value="New Section"/>
+					</div>
+					<div class="dialog_valRow">
+						<div class="dialog_label">Path</div>
+						<div id="addSection_path" style="flex 1 1;"><div style="color: grey; text-align: center">Select a path...</div></div>
+						<div id="addSection_selectPath" class="divBtn selectPath"><i class="material-icons">folder_open</i></div>
+					</div>
+				</div>
+				<div class="dialog_actions">
+					<div id="addSection_ok" class="divBtn dialog_btn" style="margin-right: 1px">Ok</div>
+					<div id="addSection_cancel" class="divBtn dialog_btn" style="margin-left: 1px">Cancel</div>
+				</div>
 			</div>
 		</div>
 	</body>
