@@ -10,6 +10,7 @@
 		<script src="js/docevents.js"></script>
 		<script src="js/dialog_addSection.js"></script>
 		<script src="js/dialog_addPage.js"></script>
+		<script src="js/dialog_rename.js"></script>
 		<script src="js/page.js"></script>
 		<script src="js/index.js"></script>
 	</head>
@@ -69,6 +70,21 @@
 				<div class="dialog_actions">
 					<div id="addPage_ok" disabled class="divBtn dialog_btn" style="margin-right: 1px">Ok</div>
 					<div id="addPage_cancel" class="divBtn dialog_btn" style="margin-left: 1px">Cancel</div>
+				</div>
+			</div>
+		</div>
+		<div id="renameOverlay" class="overlaybg hidden">
+			<div class="renameDialog overlayDialog">
+				<div class="dialog_title">Rename</div>
+				<div class="dialog_vals">
+					<div class="dialog_valRow">
+						<div class="dialog_label">Name</div>
+						<input id="rename_name" style="flex: 1 1;" value=""/>
+					</div>
+				</div>
+				<div class="dialog_actions">
+					<div id="rename_ok" disabled class="divBtn dialog_btn" style="margin-right: 1px">Ok</div>
+					<div id="rename_cancel" class="divBtn dialog_btn" style="margin-left: 1px">Cancel</div>
 				</div>
 			</div>
 		</div>

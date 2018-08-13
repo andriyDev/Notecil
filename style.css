@@ -356,3 +356,9 @@ html, body
 
 .selectPath:hover { background-color: #cdcdcd; }
 .selectPath:active { background-color: #bdbdbd; }
+
+.renameDialog
+{
+	width: 400px;
+	height: 165px;
+}

@@ -11,7 +11,8 @@ var context_target;
 
 const section_context_template =
 [
-	{ label: 'Rename', click () {  } },
+	{ label: 'Rename', click () { OpenRenameDialog(rootList[parseInt(context_target.id.substring(7))],
+		() => { SaveRootList(); regenSections(); }); } },
 	{ label: 'Move Up', click() { MoveSection(context_target, -1); } },
 	{ label: 'Move Down', click() { MoveSection(context_target, 1); } },
 	{ type: 'separator' },
@@ -20,13 +21,32 @@ const section_context_template =
 
 const page_context_template =
 [
-	{ label: 'Rename', click () {  } },
+	{ label: 'Rename', click () { OpenRenameDialog(pageList[parseInt(context_target.id.substring(4))],
+		() => { SavePageList(); regenPages(); }); } },
 	{ label: 'Move Up', click() { MovePage(context_target, -1); } },
 	{ label: 'Move Down', click() { MovePage(context_target, 1); } },
 	{ label: 'Duplicate', click() {  } },
 	{ type: 'separator' },
 	{ label: 'Delete', click() {  } }
 ];
+
+// === Utility ===
+
+function SaveRootList()
+{
+	// Write the new section list to the .sections file
+	fs.writeFile(".sections", JSON.stringify(rootList), (err) => {
+		if (err) throw err;
+	});
+}
+
+function SavePageList()
+{
+	// Write the updated page list to the .section when possible.
+	fs.writeFile(path.join(rootList[selectedSection].path, ".section"), JSON.stringify(pageList), (err) => {
+		if(err) throw err;
+	});
+}
 
 // === Context Events ===
 
@@ -50,10 +70,7 @@ function MoveSection(tgt, amt)
 	rootList[swapInd] = rootList[i];
 	rootList[i] = tmp;
 
-	// Write the updated sections when possible.
-	fs.writeFile(".sections", JSON.stringify(rootList), (err) => {
-		if (err) throw err;
-	});
+	SaveRootList();
 
 	// Now we need to update our local state.
 	// Start by making sure the selectedSection is swapped if necessary.
@@ -102,10 +119,7 @@ function MovePage(tgt, amt)
 	pageList[swapInd] = pageList[i];
 	pageList[i] = tmp;
 
-	// Write the updated page list to the section when possible.
-	fs.writeFile(path.join(rootList[selectedSection].path, ".section"), JSON.stringify(pageList), (err) => {
-		if(err) throw err;
-	});
+	SavePageList();
 
 	// If we have a page open, we also need to update that index.
 	if(openedPageInd && openedPageInd.section == selectedSection)
