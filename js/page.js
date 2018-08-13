@@ -16,31 +16,7 @@ const section_context_template =
 	{ label: 'Move Up', click() { MoveSection(context_target, -1); } },
 	{ label: 'Move Down', click() { MoveSection(context_target, 1); } },
 	{ type: 'separator' },
-	{ label: 'Delete', click() { OpenDeleteSectionDialog(context_target,
-		(deletePages) => {
-			var id = parseInt(context_target.id.subtring(7));
-			if(selectedSection == id)
-			{
-				selectedSection = -1;
-			}
-			if()
-			var sec = GetSectionPath(id);
-			// Load the page list for this section.
-			fs.readFile(sec, function(err, data){
-				// Assign the page list.
-				pageList = JSON.parse(data);
-				// Regen the page list.
-				regenPages();
-			});
-			fs.unlink(GetSectionPath(id), (err) => { if(err) throw err; });
-			// Erase the listing.
-			rootList.splice(id, 1);
-			// Save the data.
-			SaveRootList();
-			// Regenerate section list.
-			regenSections();
-		});
-	} }
+	{ label: 'Delete', click() { context_deleteSection(); }
 ];
 
 const page_context_template =
@@ -49,22 +25,9 @@ const page_context_template =
 		() => { SavePageList(); regenPages(); }); } },
 	{ label: 'Move Up', click() { MovePage(context_target, -1); } },
 	{ label: 'Move Down', click() { MovePage(context_target, 1); } },
-	{ label: 'Duplicate', click() { OpenDuplicateDialog(PageButtonToData(context_target),
-		(name, file) => {
-			// Create the listing.
-			pageList.push({name: name, file: file});
-			// Save the data.
-			SavePageList();
-			// Copy file.
-			fs.copyFileSync(GetPagePath(PageButtonToData(context_target)), GetPagePath(pageList.length - 1));
-			// Select the new page.
-			openPage(pageList.length - 1);
-			// Regenerate page list.
-			regenPages();
-		});
-	} },
+	{ label: 'Duplicate', click() { context_duplicatePage(); } },
 	{ type: 'separator' },
-	{ label: 'Delete', click() {  } }
+	{ label: 'Delete', click() { context_deletePage(); } }
 ];
 
 // === Utility ===
@@ -134,6 +97,39 @@ function GetValidPageName()
 
 // === Context Events ===
 
+function context_duplicatePage()
+{
+	OpenDuplicateDialog(PageButtonToData(context_target),
+		(name, file) => {
+			// Create the listing.
+			pageList.push({name: name, file: file});
+			// Save the data.
+			SavePageList();
+			// Copy file.
+			fs.copyFileSync(GetPagePath(PageButtonToData(context_target)), GetPagePath(pageList.length - 1));
+			// Select the new page.
+			openPage(pageList.length - 1);
+			// Regenerate page list.
+			regenPages();
+		});
+}
+
+function context_deletePage()
+{
+	var id = parseInt(context_target.id.substring(4));
+	if(openedPageInd.page == id)
+	{
+		// TODO: do something when there's no open page.
+		openedPageInd = undefined;
+	}
+	// Remove the page from the listings.
+	pageList.splice(id, 1);
+	// Save the listings.
+	SavePageList();
+	// Regenerate the page list.
+	regenPages();
+}
+
 function MoveSection(tgt, amt)
 {
 	// When we click on a section, we must first get the index of the section.
@@ -179,7 +175,7 @@ function MoveSection(tgt, amt)
 			openedPageInd.section = i;
 		}
 	}
-	
+
 	// Regenerate the section list to reflect the updated ordering.
 	regenSections();
 }
@@ -299,7 +295,7 @@ function openPage(ind)
 	{
 		openedPageInd = {section: selectedSection, page: ind};
 		openedPage = GetPagePath(ind);
-		
+
 		reloadPage();
 
 		// TODO: Move the viewport to something more reasonable.
@@ -441,4 +437,3 @@ function page_init()
 		regenSections();
 	});
 }
-

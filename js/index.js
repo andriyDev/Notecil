@@ -21,6 +21,7 @@ function init()
 	dialog_addPage_init();
 	dialog_rename_init();
 	dialog_duplicate_init();
+	dialog_deleteSection_init();
 }
 
 function onClose()
