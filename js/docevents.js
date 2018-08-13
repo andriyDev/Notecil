@@ -231,3 +231,24 @@ function onTouchUp(ev)
                 , {x: ev.targetTouches.item(1).clientX, y: ev.targetTouches.item(1).clientY});
     }
 }
+
+function docevents_init()
+{
+	// Create the svg view.
+	doc_display = SVG('doc');
+	// Add the pointer event listeners.
+	doc_display.on("pointerdown", handlePointerDown, window);
+	doc_display.on("pointerup", handlePointerUp, window);
+	doc_display.on("pointermove", handlePointerMove, window);
+
+	// For some reason, the touch events don't work properly as pointer events.
+	// So instead, we will assign direct event handlers.
+	doc_display.on("touchstart", onTouchDown, window);
+	doc_display.on("touchend", onTouchUp, window);
+	doc_display.on("touchmove", onTouchMove, window);
+
+	// TODO: Stop using tools if mouse leaves doc window. Otherwise it has strange effects.
+
+	// Assign an arbitrary viewbox.
+	doc_display.viewbox(0,0,1000,1000);
+}
