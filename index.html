@@ -29,7 +29,7 @@
 				<div id='doc' class='doc'></div>
 			</div>
 		</div>
-		<div id="addSectionOverlay" class="overlaybg">
+		<div id="addSectionOverlay" class="overlaybg hidden">
 			<div class="addSectionDialog overlayDialog">
 				<div class="dialog_title">Add Section</div>
 				<div class="dialog_vals">
@@ -46,6 +46,26 @@
 				<div class="dialog_actions">
 					<div id="addSection_ok" disabled class="divBtn dialog_btn dialog_btn_disabled" style="margin-right: 1px">Ok</div>
 					<div id="addSection_cancel" class="divBtn dialog_btn" style="margin-left: 1px">Cancel</div>
+				</div>
+			</div>
+		</div>
+		<div id="addPageOverlay" class="overlaybg hidden">
+			<div class="addPageDialog overlayDialog">
+				<div class="dialog_title">Add Page</div>
+				<div class="dialog_vals">
+					<div class="dialog_valRow">
+						<div class="dialog_label">Name</div>
+						<input id="addPage_name" style="flex: 1 1;" value=""/>
+					</div>
+					<div id="addPage_advanced" class="dialog_valRow advanced_btn">Advanced</div>
+					<div id="addPage_fileRow" class="dialog_valRow">
+						<div class="dialog_label">File Name</div>
+						<input id="addPage_file" style="flex: 1 1;" value=""/>
+					</div>
+				</div>
+				<div class="dialog_actions">
+					<div id="addPage_ok" disabled class="divBtn dialog_btn dialog_btn_disabled" style="margin-right: 1px">Ok</div>
+					<div id="addPage_cancel" class="divBtn dialog_btn" style="margin-left: 1px">Cancel</div>
 				</div>
 			</div>
 		</div>

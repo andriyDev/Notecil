@@ -47,8 +47,9 @@ function selectSection(i)
 function clickedPage()
 {
 	var i = parseInt(this.id.substring(4));
-	selectedPage = i;
-	openPage(path.join(rootList[selectedSection].path, this.value));
+	$('.file_elem').removeClass('selected_file');
+	$(this).addClass('selected_file');
+	openPage(path.join(rootList[selectedSection].path, $(this).attr('value') + ".ncb"));
 }
 
 function openPage(page)
@@ -57,6 +58,7 @@ function openPage(page)
 	{
 		savePage();
 	}
+
 	selectedPage = page;
 	openedPage = page;
 
@@ -65,7 +67,7 @@ function openPage(page)
 
 function savePage()
 {
-	var paths = $('#doc').children().children().toArray();
+	var paths = $('#doc').children().children().filter("path").toArray();
 
 	// We start with a single buffer that will hold the number of paths.
 	var buffers = [Buffer.alloc(4)];
@@ -93,8 +95,11 @@ function savePage()
 		// Add the buffer to the buffers that need to be written.
 		buffers.push(buf);
 	}
+
+	buffers = Buffer.concat(buffers, tl);
 	// Write the buffers once they are concatenated.
-	fs.writeFileSync(openedPage, Buffer.concat(buffers, tl));
+	fs.writeFileSync(openedPage, buffers);
+	console.log("Writing!");
 }
 
 function reloadPage()
@@ -128,11 +133,11 @@ function regenSections()
 	// Start by clearing out the list first.
 	var list = $('#sections_list');
 	list.empty();
-	
+
 	for(var i = 0; i < rootList.length; i++)
 	{
 		// Create a section button for each element in the rootList.
-		var section = $('<div id="section' + i + '"class="divBtn section_elem" value="' + rootList[i].fileName + '">' + rootList[i].name + '</div>');
+		var section = $('<div id="section' + i + '" class="divBtn section_elem" value="' + rootList[i].fileName + '">' + rootList[i].name + '</div>');
 		list.append(section);
 		// Add the event listener for the click.
 		section.on("click", clickedSection);
@@ -156,7 +161,7 @@ function regenPages()
 		// TODO: do something when there's no selected section.
 		return;
 	}
-	
+
 	fs.readFile(path.join(rootList[selectedSection].path, ".section"), (err, data) => {
 		if(err)
 		{
@@ -168,9 +173,9 @@ function regenPages()
 		data = JSON.parse(data);
 		for(var i = 0; i < data.length; i++)
 		{
-			var new_page = $('<div id="page' + i + '" class="divBtn file_elem">' + data[i].name + '</div>');
+			var new_page = $('<div id="page' + i + '" class="divBtn file_elem" value="' + data[i].file + '">' + data[i].name + '</div>');
 			pages.append(new_page);
-			// TODO: Add a click event listener
+			new_page.on("click", clickedPage);
 			if(i == selectedPage)
 			{
 				new_page.addClass("selected_file");
@@ -181,15 +186,62 @@ function regenPages()
 
 function addSection()
 {
-	$('#addSectionOverlay').addClass('showOverlay');
+	$('#addSectionOverlay').removeClass('hidden');
 	$('#addSection_name').val("New Section");
 	$('#addSection_path').attr('value', "").text("Select a path...");
 	$('#addSection_ok').prop('disabled', true).addClass('dialog_btn_disabled');
+
+	$('#addSection_advanced').removeClass('hidden');
+	$('#addSection_pathRow').addClass('hidden');
 }
 
 function addPage()
 {
-	
+	$('#addPageOverlay').removeClass('hidden');
+	$('#addPage_name').val("New Page");
+
+	var files = fs.readdirSync(rootList[selectedSection].path);
+	var currentPages = {};
+	for(var i = 0; i < files.length; i++)
+	{
+		var f = path.parse(files[i]);
+		if(f.ext == ".ncb")
+		{
+			currentPages[f.name] = true;
+		}
+	}
+	var fn;
+	do {
+		fn = "Page" + (Math.floor(Math.random() * 10000) + 1)
+	} while (currentPages[fn]);
+	$('#addPage_file').val(fn);
+
+	$('#addPage_advanced').removeClass('hidden');
+	$('#addPage_fileRow').addClass('hidden');
+}
+
+function addPage_ok()
+{
+	var filename = $('#addPage_file').val();
+	var file = path.join(rootList[selectedSection].path, $('#addPage_file').val() + ".ncb");
+	fs.access(file, fs.constants.F_OK, (err) => {
+		if (err)
+		{
+			var buf = Buffer.alloc(4);
+			buf.writeUInt32BE(0, 0);
+			fs.writeFileSync(file, buf);
+		}
+		var sec_file = path.join(rootList[selectedSection].path, ".section");
+		var data = fs.readFileSync(sec_file);
+		data = JSON.parse(data);
+		data.push({name: $('#addPage_name').val(), file: filename});
+		fs.writeFileSync(sec_file, JSON.stringify(data));
+
+		openPage(file);
+		regenPages();
+
+		$('#addPageOverlay').addClass('hidden');
+	});
 }
 
 function selectPath()
@@ -235,7 +287,6 @@ function addSection_ok(ev)
 		return;
 	}
 
-	// TODO: Create the section.
 	fs.access($('#addSection_path').attr('value'), (err) => {
 		if (err)
 		{
@@ -249,13 +300,24 @@ function addSection_ok(ev)
 		selectedSection = rootList.length - 1;
 		regenSections();
 
-		$('#addSectionOverlay').removeClass('showOverlay');
+		$('#addSectionOverlay').addClass('hidden');
 	});
+}
+
+function addPage_cancel()
+{
+	$('#addPageOverlay').addClass('hidden');
 }
 
 function addSection_cancel()
 {
-	$('#addSectionOverlay').removeClass('showOverlay');
+	$('#addSectionOverlay').addClass('hidden');
+}
+
+function addPage_advanced()
+{
+	$('#addPage_fileRow').removeClass('hidden');
+	$('#addPage_advanced').addClass('hidden');
 }
 
 function init()
@@ -305,7 +367,11 @@ function init()
 	$('#addSection_cancel').on("click", addSection_cancel);
 
 	$('.files_add').on("click", addPage);
+	$('#addPageOverlay').on("click", addPage_cancel);
+	$('.addPageDialog').on("click", function(){ return false; });
+	$('#addPage_ok').on("click", addPage_ok);
+	$('#addPage_cancel').on("click", addPage_cancel);
+	$('#addPage_advanced').on("click", addPage_advanced);
 }
 
 document.addEventListener("DOMContentLoaded", init);
-

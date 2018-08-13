@@ -13,17 +13,17 @@ html, body
 
 /* Track */
 ::-webkit-scrollbar-track {
-    background: #f1f1f1; 
+    background: #f1f1f1;
 }
- 
+
 /* Handle */
 ::-webkit-scrollbar-thumb {
-    background: #888; 
+    background: #888;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-    background: #555; 
+    background: #555;
 }
 
 .mainContainer
@@ -166,11 +166,11 @@ html, body
 
 .selected_file
 {
-	background-color: #9575cd;
+	background-color: #beabe0;
 }
 
-.selected_file:hover { background-color: #9575cd; }
-.selected_file:active { background-color: #9575cd; }
+.selected_file:hover { background-color: #beabe0; }
+.selected_file:active { background-color: #beabe0; }
 
 .files_add
 {
@@ -225,7 +225,6 @@ html, body
 .overlaybg
 {
 	position: fixed;
-	display: none;
 	width: 100%;
 	height: 100%;
 	top: 0;
@@ -241,10 +240,19 @@ html, body
 	cursor: pointer;
 }
 
-.showOverlay
+.hidden
 {
-	display: block;
+	display: none;
 }
+
+.advanced_btn
+{
+	text-align: center;
+	color: #d0d0d0;
+}
+
+.advanced_btn:hover { color: #c0c0c0; }
+.advanced_btn:active { color: #b0b0b0; }
 
 .overlayDialog
 {
@@ -275,7 +283,7 @@ html, body
 {
 	flex: 1 1;
 	padding: 30px;
-	padding-bottom: 0;
+	padding-bottom: 15px;
 }
 
 .dialog_valRow
@@ -336,7 +344,7 @@ html, body
 	height: 30px;
 
 	margin-left: 10px;
-	
+
 	text-align: center;
 	vertical-align: middle;
 	line-height: 30px;
@@ -346,4 +354,3 @@ html, body
 
 .selectPath:hover { background-color: #cdcdcd; }
 .selectPath:active { background-color: #bdbdbd; }
-
