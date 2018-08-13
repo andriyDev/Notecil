@@ -1,0 +1,7 @@
+This will be a file just to keep track of major desired features. Once a feature is complete, remove it from this file.
+
+Configurable brushes - Brush sizes, brush colour, and the associated saving/loading.
+Tools - erase, select, move.
+Context menu for pages/sections - delete, rename, duplicate, export.
+
+% means in progress.
