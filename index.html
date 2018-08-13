@@ -11,6 +11,7 @@
 		<script src="js/dialog_addSection.js"></script>
 		<script src="js/dialog_addPage.js"></script>
 		<script src="js/dialog_rename.js"></script>
+		<script src="js/dialog_duplicate.js"></script>
 		<script src="js/page.js"></script>
 		<script src="js/index.js"></script>
 	</head>
@@ -85,6 +86,26 @@
 				<div class="dialog_actions">
 					<div id="rename_ok" disabled class="divBtn dialog_btn" style="margin-right: 1px">Ok</div>
 					<div id="rename_cancel" class="divBtn dialog_btn" style="margin-left: 1px">Cancel</div>
+				</div>
+			</div>
+		</div>
+		<div id="duplicateOverlay" class="overlaybg hidden">
+			<div class="duplicateDialog overlayDialog">
+				<div class="dialog_title">Duplicate</div>
+				<div class="dialog_vals">
+					<div class="dialog_valRow">
+						<div class="dialog_label">Name</div>
+						<input id="duplicate_name" style="flex: 1 1;" value=""/>
+					</div>
+					<div style="text-align: center" class="dialog_valRow"><div id="duplicate_advanced" class="advanced_btn">Advanced</div></div>
+					<div id="duplicate_fileRow" class="dialog_valRow">
+						<div class="dialog_label">File Name</div>
+						<input id="duplicate_file" style="flex: 1 1;" value=""/>
+					</div>
+				</div>
+				<div class="dialog_actions">
+					<div id="duplicate_ok" disabled class="divBtn dialog_btn" style="margin-right: 1px">Ok</div>
+					<div id="duplicate_cancel" class="divBtn dialog_btn" style="margin-left: 1px">Cancel</div>
 				</div>
 			</div>
 		</div>

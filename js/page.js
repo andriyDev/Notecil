@@ -11,7 +11,7 @@ var context_target;
 
 const section_context_template =
 [
-	{ label: 'Rename', click () { OpenRenameDialog(rootList[parseInt(context_target.id.substring(7))],
+	{ label: 'Rename', click () { OpenRenameDialog(SectionButtonToData(context_target),
 		() => { SaveRootList(); regenSections(); }); } },
 	{ label: 'Move Up', click() { MoveSection(context_target, -1); } },
 	{ label: 'Move Down', click() { MoveSection(context_target, 1); } },
@@ -21,11 +21,21 @@ const section_context_template =
 
 const page_context_template =
 [
-	{ label: 'Rename', click () { OpenRenameDialog(pageList[parseInt(context_target.id.substring(4))],
+	{ label: 'Rename', click () { OpenRenameDialog(PageButtonToData(context_target),
 		() => { SavePageList(); regenPages(); }); } },
 	{ label: 'Move Up', click() { MovePage(context_target, -1); } },
 	{ label: 'Move Down', click() { MovePage(context_target, 1); } },
-	{ label: 'Duplicate', click() {  } },
+	{ label: 'Duplicate', click() { OpenDuplicateDialog(PageButtonToData(context_target),
+		(name, file) => {
+			pageList.push({name: name, file: file});
+			SavePageList();
+			console.log(name);
+			console.log(file);
+			fs.copyFileSync(GetPagePath(PageButtonToData(context_target)), GetPagePath(pageList.length - 1));
+			openPage(pageList.length - 1);
+			regenPages();
+		});
+	} },
 	{ type: 'separator' },
 	{ label: 'Delete', click() {  } }
 ];
@@ -43,9 +53,56 @@ function SaveRootList()
 function SavePageList()
 {
 	// Write the updated page list to the .section when possible.
-	fs.writeFile(path.join(rootList[selectedSection].path, ".section"), JSON.stringify(pageList), (err) => {
+	fs.writeFile(GetSectionPath(selectedSection), JSON.stringify(pageList), (err) => {
 		if(err) throw err;
 	});
+}
+
+function SectionButtonToData(tgt)
+{
+	return rootList[parseInt(tgt.id.substring(7))];
+}
+
+function PageButtonToData(tgt)
+{
+	return pageList[parseInt(tgt.id.substring(4))];
+}
+
+function GetPagePath(ind)
+{
+	if((typeof ind) == "number")
+	{
+		return path.join(rootList[selectedSection].path, pageList[ind].file + ".ncb");
+	}
+	else
+	{
+		return path.join(rootList[selectedSection].path, ind.file + ".ncb");
+	}
+}
+
+function GetSectionPath(ind)
+{
+	return path.join(rootList[selectedSection].path, ".section");
+}
+
+function GetValidPageName()
+{
+	var files = fs.readdirSync(rootList[selectedSection].path);
+	var currentPages = {};
+	for(var i = 0; i < files.length; i++)
+	{
+		var f = path.parse(files[i]);
+		if(f.ext == ".ncb")
+		{
+			currentPages[f.name] = true;
+		}
+	}
+	var fn;
+	do {
+		fn = "Page" + (Math.floor(Math.random() * 10000) + 1);
+	} while (currentPages[fn]);
+
+	return fn;
 }
 
 // === Context Events ===
@@ -170,12 +227,13 @@ function selectSection(i)
 		selectedSection = i;
 		$('#section' + selectedSection).addClass('selected_section');
 
+		var sec = GetSectionPath(selectedSection);
 		// Load the page list for this section.
-		fs.readFile(path.join(rootList[selectedSection].path, ".section"), function(err, data){
+		fs.readFile(sec, function(err, data){
 			if(err)
 			{
 				// If we hit an error, try to create a .section file. If there's still an error, just let it throw.
-				fs.writeFileSync(path.join(rootList[selectedSection].path, ".section"), "[]");
+				fs.writeFileSync(sec, "[]");
 				// Assign the default empty data.
 				data = "[]";
 			}
@@ -213,7 +271,7 @@ function openPage(ind)
 	if(!openedPageInd || openedPageInd.page != ind || openedPageInd.section != selectedSection)
 	{
 		openedPageInd = {section: selectedSection, page: ind};
-		openedPage = path.join(rootList[selectedSection].path, pageList[ind].file + ".ncb");
+		openedPage = GetPagePath(ind);
 		
 		reloadPage();
 

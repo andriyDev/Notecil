@@ -4,21 +4,7 @@ function addPage()
 	$('#addPageOverlay').removeClass('hidden');
 	$('#addPage_name').val("New Page");
 
-	var files = fs.readdirSync(rootList[selectedSection].path);
-	var currentPages = {};
-	for(var i = 0; i < files.length; i++)
-	{
-		var f = path.parse(files[i]);
-		if(f.ext == ".ncb")
-		{
-			currentPages[f.name] = true;
-		}
-	}
-	var fn;
-	do {
-		fn = "Page" + (Math.floor(Math.random() * 10000) + 1)
-	} while (currentPages[fn]);
-	$('#addPage_file').val(fn);
+	$('#addPage_file').val(GetValidPageName());
 
 	$('#addPage_advanced').removeClass('hidden');
 	$('#addPage_fileRow').addClass('hidden');
@@ -27,7 +13,8 @@ function addPage()
 function addPage_ok()
 {
 	var filename = $('#addPage_file').val();
-	var file = path.join(rootList[selectedSection].path, $('#addPage_file').val() + ".ncb");
+	pageList.push({name: $('#addPage_name').val(), file: filename});
+	var file = GetPagePath(pageList.length - 1);
 	fs.access(file, fs.constants.F_OK, (err) => {
 		if (err)
 		{
@@ -35,11 +22,9 @@ function addPage_ok()
 			buf.writeUInt32BE(0, 0);
 			fs.writeFileSync(file, buf);
 		}
-		var sec_file = path.join(rootList[selectedSection].path, ".section");
-		pageList.push({name: $('#addPage_name').val(), file: filename});
-		fs.writeFileSync(sec_file, JSON.stringify(pageList));
+		fs.writeFileSync(GetSectionPath(selectedSection), JSON.stringify(pageList));
 
-		openPage($('#files_list').children().length);
+		openPage(pageList.length - 1);
 		regenPages();
 
 		$('#addPageOverlay').addClass('hidden');
@@ -54,7 +39,6 @@ function addPage_cancel()
 
 function addPage_advanced()
 {
-	console.log("Advanced!");
 	$('#addPage_fileRow').removeClass('hidden');
 	$('#addPage_advanced').addClass('hidden');
 }

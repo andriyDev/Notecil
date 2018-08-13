@@ -20,6 +20,7 @@ function init()
 	dialog_addSection_init();
 	dialog_addPage_init();
 	dialog_rename_init();
+	dialog_duplicate_init();
 }
 
 document.addEventListener("DOMContentLoaded", init);
