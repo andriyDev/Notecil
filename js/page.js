@@ -16,7 +16,31 @@ const section_context_template =
 	{ label: 'Move Up', click() { MoveSection(context_target, -1); } },
 	{ label: 'Move Down', click() { MoveSection(context_target, 1); } },
 	{ type: 'separator' },
-	{ label: 'Delete', click() {  } }
+	{ label: 'Delete', click() { OpenDeleteSectionDialog(context_target,
+		(deletePages) => {
+			var id = parseInt(context_target.id.subtring(7));
+			if(selectedSection == id)
+			{
+				selectedSection = -1;
+			}
+			if()
+			var sec = GetSectionPath(id);
+			// Load the page list for this section.
+			fs.readFile(sec, function(err, data){
+				// Assign the page list.
+				pageList = JSON.parse(data);
+				// Regen the page list.
+				regenPages();
+			});
+			fs.unlink(GetSectionPath(id), (err) => { if(err) throw err; });
+			// Erase the listing.
+			rootList.splice(id, 1);
+			// Save the data.
+			SaveRootList();
+			// Regenerate section list.
+			regenSections();
+		});
+	} }
 ];
 
 const page_context_template =
@@ -27,12 +51,15 @@ const page_context_template =
 	{ label: 'Move Down', click() { MovePage(context_target, 1); } },
 	{ label: 'Duplicate', click() { OpenDuplicateDialog(PageButtonToData(context_target),
 		(name, file) => {
+			// Create the listing.
 			pageList.push({name: name, file: file});
+			// Save the data.
 			SavePageList();
-			console.log(name);
-			console.log(file);
+			// Copy file.
 			fs.copyFileSync(GetPagePath(PageButtonToData(context_target)), GetPagePath(pageList.length - 1));
+			// Select the new page.
 			openPage(pageList.length - 1);
+			// Regenerate page list.
 			regenPages();
 		});
 	} },
@@ -82,7 +109,7 @@ function GetPagePath(ind)
 
 function GetSectionPath(ind)
 {
-	return path.join(rootList[selectedSection].path, ".section");
+	return path.join(rootList[ind].path, ".section");
 }
 
 function GetValidPageName()
