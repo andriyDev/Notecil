@@ -49,20 +49,23 @@ function clickedPage()
 	var i = parseInt(this.id.substring(4));
 	$('.file_elem').removeClass('selected_file');
 	$(this).addClass('selected_file');
-	openPage(path.join(rootList[selectedSection].path, $(this).attr('value') + ".ncb"));
+	openPage(path.join(rootList[selectedSection].path, $(this).attr('value') + ".ncb"), i);
 }
 
-function openPage(page)
+function openPage(page, ind)
 {
 	if(openedPage)
 	{
 		savePage();
 	}
 
-	selectedPage = page;
-	openedPage = page;
+	if(selectedPage != ind)
+	{
+		selectedPage = ind;
+		openedPage = page;
 
-	reloadPage();
+		reloadPage();
+	}
 }
 
 function savePage()
@@ -185,143 +188,6 @@ function regenPages()
 	});
 }
 
-function addSection()
-{
-	$('#addSectionOverlay').removeClass('hidden');
-	$('#addSection_name').val("New Section");
-	$('#addSection_path').attr('value', "").text("Select a path...");
-	$('#addSection_ok').prop('disabled', true).addClass('dialog_btn_disabled');
-
-	$('#addSection_advanced').removeClass('hidden');
-	$('#addSection_pathRow').addClass('hidden');
-}
-
-function addPage()
-{
-	$('#addPageOverlay').removeClass('hidden');
-	$('#addPage_name').val("New Page");
-
-	var files = fs.readdirSync(rootList[selectedSection].path);
-	var currentPages = {};
-	for(var i = 0; i < files.length; i++)
-	{
-		var f = path.parse(files[i]);
-		if(f.ext == ".ncb")
-		{
-			currentPages[f.name] = true;
-		}
-	}
-	var fn;
-	do {
-		fn = "Page" + (Math.floor(Math.random() * 10000) + 1)
-	} while (currentPages[fn]);
-	$('#addPage_file').val(fn);
-
-	$('#addPage_advanced').removeClass('hidden');
-	$('#addPage_fileRow').addClass('hidden');
-}
-
-function addPage_ok()
-{
-	var filename = $('#addPage_file').val();
-	var file = path.join(rootList[selectedSection].path, $('#addPage_file').val() + ".ncb");
-	fs.access(file, fs.constants.F_OK, (err) => {
-		if (err)
-		{
-			var buf = Buffer.alloc(4);
-			buf.writeUInt32BE(0, 0);
-			fs.writeFileSync(file, buf);
-		}
-		var sec_file = path.join(rootList[selectedSection].path, ".section");
-		var data = fs.readFileSync(sec_file);
-		data = JSON.parse(data);
-		data.push({name: $('#addPage_name').val(), file: filename});
-		fs.writeFileSync(sec_file, JSON.stringify(data));
-
-		openPage(file);
-		regenPages();
-
-		$('#addPageOverlay').addClass('hidden');
-	});
-}
-
-function selectPath()
-{
-	var paths = electron.remote.dialog.showOpenDialog(electron.remote.getCurrentWindow(), {properties: ['openDirectory']});
-	if(paths && paths.length > 0)
-	{
-		return paths[0];
-	}
-	else
-	{
-		return undefined;
-	}
-}
-
-function reverseTruncate(str, maxlen)
-{
-	if(str.length <= maxlen)
-	{
-		return str;
-	}
-	else
-	{
-		return "..." + str.substring(str.length - maxlen, str.length);
-	}
-}
-
-function addSection_selectPath()
-{
-	var path = selectPath();
-	if(path)
-	{
-		$('#addSection_path').attr("value", path).text(reverseTruncate(path, 30));
-		$('#addSection_ok').prop('disabled', false).removeClass('dialog_btn_disabled');
-	}
-}
-
-function addSection_ok(ev)
-{
-	var btn = $('#addSection_ok');
-	if(btn.prop('disabled'))
-	{
-		return;
-	}
-
-	fs.access($('#addSection_path').attr('value'), (err) => {
-		if (err)
-		{
-			throw err;
-			// TODO: Make the dialog box have an error message.
-		}
-		rootList.push({name: $('#addSection_name').val(), path: $('#addSection_path').attr('value')});
-		fs.writeFile(".sections", JSON.stringify(rootList), function(err){
-			if(err) throw err;
-		});
-		selectedSection = rootList.length - 1;
-		regenSections();
-
-		$('#addSectionOverlay').addClass('hidden');
-	});
-}
-
-function addPage_cancel()
-{
-	$('#addPageOverlay').addClass('hidden');
-}
-
-function addSection_cancel()
-{
-	$('#addSectionOverlay').addClass('hidden');
-}
-
-function addPage_advanced()
-{
-	console.log("Advanced!");
-	$('#addPage_fileRow').removeClass('hidden');
-	$('#addPage_advanced').addClass('hidden');
-}
-
 function init()
 {
 	// Create the svg view.
@@ -361,19 +227,8 @@ function init()
 		regenSections();
 	});
 
-	$('.sections_add').on("click", addSection);
-	$('#addSectionOverlay').on("click", addSection_cancel);
-	$('.addSectionDialog').on("click", function(){ return false; });
-	$('#addSection_selectPath').on("click", addSection_selectPath);
-	$('#addSection_ok').on("click", addSection_ok);
-	$('#addSection_cancel').on("click", addSection_cancel);
-
-	$('.files_add').on("click", addPage);
-	$('#addPageOverlay').on("click", addPage_cancel);
-	$('.addPageDialog').on("click", function(){ return false; });
-	$('#addPage_ok').on("click", addPage_ok);
-	$('#addPage_cancel').on("click", addPage_cancel);
-	$('#addPage_advanced').on("click", addPage_advanced);
+	dialog_addSection_init();
+	dialog_addPage_init();
 }
 
 document.addEventListener("DOMContentLoaded", init);
