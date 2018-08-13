@@ -36,12 +36,10 @@ function addPage_ok()
 			fs.writeFileSync(file, buf);
 		}
 		var sec_file = path.join(rootList[selectedSection].path, ".section");
-		var data = fs.readFileSync(sec_file);
-		data = JSON.parse(data);
-		data.push({name: $('#addPage_name').val(), file: filename});
-		fs.writeFileSync(sec_file, JSON.stringify(data));
+		pageList.push({name: $('#addPage_name').val(), file: filename});
+		fs.writeFileSync(sec_file, JSON.stringify(pageList));
 
-		openPage(file, $('#files_list').children().length);
+		openPage($('#files_list').children().length);
 		regenPages();
 
 		$('#addPageOverlay').addClass('hidden');

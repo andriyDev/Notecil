@@ -59,13 +59,18 @@ function addSection_ok(ev)
 			throw err;
 			// TODO: Make the dialog box have an error message.
 		}
+		// Add the new section to the rootList.
 		rootList.push({name: $('#addSection_name').val(), path: $('#addSection_path').attr('value')});
+		// Save the rootList whenever you can.
 		fs.writeFile(".sections", JSON.stringify(rootList), function(err){
 			if(err) throw err;
 		});
+		// Set the selection to the new section.
 		selectedSection = rootList.length - 1;
+		// Regenerate the sections to generate the new section button.
 		regenSections();
 
+		// Close the dialog box.
 		$('#addSectionOverlay').addClass('hidden');
 	});
 }

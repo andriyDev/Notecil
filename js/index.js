@@ -8,16 +8,9 @@ var printedPointerNotSupportedMsg = false;
 var zooming = false;
 
 const electron = require('electron');
+const {Menu} = electron.remote;
 const fs = require('fs');
 const path = require('path');
-
-var rootList;
-
-var selectedSection = -1;
-var selectedPage = -1;
-
-var openedPage;
-
 
 function init()
 {
