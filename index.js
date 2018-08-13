@@ -78,33 +78,34 @@ function savePage()
 	for(var i = 0; i < paths.length; i++)
 	{
 		// Get the plot.
-		var path_data = extractPlotFromPath(paths[i]);
+		var path_data = extractPlotFromPath(SVG.adopt(paths[i]));
 		// Allocate the number of bytes required for the length and then bytes enough for the plot.
 		var buf = Buffer.alloc(4 + path_data.length * 8);
-		// Add to the "total length"
-		tl += 4 + path_data.length * 8;
 		// Write the path length.
 		buf.writeUInt32BE(path_data.length, 0);
 		// TODO: Make this write the correct "brush"
+		var b = 4;
 		for(var j = 0; j < path_data.length; j++)
 		{
 			// For each point in the plot, write both the x and y coordinates.
-			buf.writeFloatBE(path_data[j].x, j * 8 + 4);
-			buf.writeFloatBE(path_data[j].y, j * 8 + 8);
+			buf.writeFloatBE(path_data[j].x, b);
+			buf.writeFloatBE(path_data[j].y, b + 4);
+			b += 8;
 		}
 		// Add the buffer to the buffers that need to be written.
 		buffers.push(buf);
+		// Add to the "total length"
+		tl += b;
 	}
 
 	buffers = Buffer.concat(buffers, tl);
 	// Write the buffers once they are concatenated.
 	fs.writeFileSync(openedPage, buffers);
-	console.log("Writing!");
 }
 
 function reloadPage()
 {
-	$('doc').children().empty();
+	$('#doc').children().empty();
 	fs.readFile(openedPage, {encoding: null}, (err, data) => {
 		if (err) throw err;
 		var paths = data.readUInt32BE(0);
@@ -119,7 +120,7 @@ function reloadPage()
 			var plot = new Array(path_len);
 			for(var j = 0; j < path_len; j++)
 			{
-				plot[j] = {x: data.readFloat32BE(b), y: data.readFloat32BE(b + 4)};
+				plot[j] = {x: data.readFloatBE(b), y: data.readFloatBE(b + 4)};
 				b += 8;
 			}
 			// TODO: Make this load the correct "brush"
@@ -316,6 +317,7 @@ function addSection_cancel()
 
 function addPage_advanced()
 {
+	console.log("Advanced!");
 	$('#addPage_fileRow').removeClass('hidden');
 	$('#addPage_advanced').addClass('hidden');
 }

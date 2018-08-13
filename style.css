@@ -242,17 +242,18 @@ html, body
 
 .hidden
 {
-	display: none;
+	display: none !important;
 }
 
 .advanced_btn
 {
+	margin: auto;
 	text-align: center;
-	color: #d0d0d0;
+	color: #b0b0b0;
 }
 
-.advanced_btn:hover { color: #c0c0c0; }
-.advanced_btn:active { color: #b0b0b0; }
+.advanced_btn:hover { color: #808080; }
+.advanced_btn:active { color: #808080; }
 
 .overlayDialog
 {
