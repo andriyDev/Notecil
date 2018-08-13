@@ -23,4 +23,11 @@ function init()
 	dialog_duplicate_init();
 }
 
+function onClose()
+{
+	// On window close, save the page.
+	savePage();
+}
+
 document.addEventListener("DOMContentLoaded", init);
+window.addEventListener("beforeunload", onClose);

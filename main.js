@@ -45,6 +45,8 @@ function saveConfig()
 
 function createWindow () {
 
+	Menu.setApplicationMenu(null);
+
 	// Create the browser window.
 	win = new BrowserWindow({x: cfg.window.x, y: cfg.window.y, width: cfg.window.width, height: cfg.window.height});
 	if(cfg.window.max)
@@ -83,32 +85,4 @@ app.on('activate', () => {
 		createWindow()
 	}
 })
-
-function open()
-{
-	console.log("Opened!");
-}
-
-function save()
-{
-}
-
-function saveas()
-{
-}
-
-const menuTemplate =
-	[
-		{
-			label: "File",
-			submenu: [
-				{label: "Open", click: open},
-				{label: "Save", click: save},
-				{label: "Save As", click: saveas}
-			]
-		}
-	];
-
-const menu = Menu.buildFromTemplate(menuTemplate);
-Menu.setApplicationMenu(menu);
 
