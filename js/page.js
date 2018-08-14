@@ -308,23 +308,27 @@ function selectSection(i)
 		// Set the selection and add the correct class.
 		selectedSection = i;
 		$('#section' + selectedSection).addClass('selected_section');
-
-		var sec = GetSectionPath(selectedSection);
-		// Load the page list for this section.
-		fs.readFile(sec, function(err, data){
-			if(err)
-			{
-				// If we hit an error, try to create a .section file. If there's still an error, just let it throw.
-				fs.writeFileSync(sec, "[]");
-				// Assign the default empty data.
-				data = "[]";
-			}
-			// Assign the page list.
-			pageList = JSON.parse(data);
-			// Regen the page list.
-			regenPages();
-		});
+		
+		readSelectedSection(() => { regenPages(); });
 	}
+}
+
+function readSelectedSection(callback)
+{
+	var sec = GetSectionPath(selectedSection);
+	// Load the page list for this section.
+	fs.readFile(sec, function(err, data){
+		if(err)
+		{
+			// If we hit an error, try to create a .section file. If there's still an error, just let it throw.
+			fs.writeFileSync(sec, "[]");
+			// Assign the default empty data.
+			data = "[]";
+		}
+		// Assign the page list.
+		pageList = JSON.parse(data);
+		callback();
+	});
 }
 
 function clickedPage(ev)

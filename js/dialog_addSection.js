@@ -67,8 +67,11 @@ function addSection_ok(ev)
 		});
 		// Set the selection to the new section.
 		selectedSection = rootList.length - 1;
-		// Regenerate the sections to generate the new section button.
-		regenSections();
+
+		// If the user selected an existing section, we have to read it.
+		// Otherwise, this function will generate a .section file.
+		// In any case, at the end we must regen the sections.
+		readSelectedSection(() => { regenSections(); });
 
 		// Close the dialog box.
 		$('#addSectionOverlay').addClass('hidden');
