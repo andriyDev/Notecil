@@ -22,7 +22,7 @@ const section_context_template =
 const page_context_template =
 [
 	{ label: 'Rename', click () { OpenRenameDialog(PageButtonToData(context_target),
-		() => { SavePageList(); regenPages(); }); } },
+		() => { $(document).attr("title", "Notecil - " + rootList[selectedSection].name + ": " + PageButtonToData(context_target).name); SavePageList(); regenPages(); }); } },
 	{ label: 'Move Up', click() { MovePage(context_target, -1); } },
 	{ label: 'Move Down', click() { MovePage(context_target, 1); } },
 	{ label: 'Duplicate', click() { context_duplicatePage(); } },
@@ -176,10 +176,20 @@ function ExportPage()
 function context_deletePage()
 {
 	var id = parseInt(context_target.id.substring(4));
-	if(openedPageInd.page == id)
+	if(openedPageInd.section == selectedSection)
 	{
-		// TODO: do something when there's no open page.
-		openedPageInd = undefined;
+		if(openedPageInd.page == id)
+		{
+			// TODO: do something when there's no open page.
+			openedPageInd = undefined;
+			// Update the title to match the fact that no documents are open.
+			$(document).attr("title", "Notecil");
+		}
+		// If the opened document is further down the list, we need to update the index to move up 1.
+		else if(openedPageInd.page > id)
+		{
+			openedPageInd.page -= 1;
+		}
 	}
 	// Remove the page from the listings.
 	pageList.splice(id, 1);
@@ -357,6 +367,8 @@ function openPage(ind)
 	if(!openedPageInd || openedPageInd.page != ind || openedPageInd.section != selectedSection)
 	{
 		openedPageInd = {section: selectedSection, page: ind};
+		// Update the title to match the page we are editing.
+		$(document).attr("title", "Notecil - " + rootList[selectedSection].name + ": " + pageList[ind].name);
 		openedPage = GetPagePath(ind);
 
 		reloadPage();
@@ -438,7 +450,7 @@ function regenSections()
 	for(var i = 0; i < rootList.length; i++)
 	{
 		// Create a section button for each element in the rootList.
-		var section = $('<div id="section' + i + '" class="divBtn section_elem" value="' + rootList[i].fileName + '">' + rootList[i].name + '</div>');
+		var section = $('<div id="section' + i + '" class="divBtn section_elem" value="' + rootList[i].path + '"><div class="elem_text fixTextOverflow">' + rootList[i].name + '</div></div>');
 		list.append(section);
 		// Add the event listener for the click.
 		section.on("click", clickedSection);
@@ -466,7 +478,7 @@ function regenPages()
 
 	for(var i = 0; i < pageList.length; i++)
 	{
-		var new_page = $('<div id="page' + i + '" class="divBtn file_elem">' + pageList[i].name + '</div>');
+		var new_page = $('<div id="page' + i + '" class="divBtn file_elem"><div class="elem_text fixTextOverflow">' + pageList[i].name + '</div></div>');
 		pages.append(new_page);
 		new_page.on("click", clickedPage);
 		new_page.on("contextmenu", openPageContext);

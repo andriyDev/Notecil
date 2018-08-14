@@ -19,6 +19,13 @@ function context_deleteSection()
 			if(selectedSection == id)
 			{
 				selectedSection = -1;
+				pageList = undefined;
+			}
+			if(openedPageInd.section == id)
+			{
+				openedPageInd = undefined;
+				// Update the title to match the fact that no documents are open.
+				$(document).attr("title", "Notecil");
 			}
 			var sec = GetSectionPath(id);
 			if(deletePages)
@@ -36,19 +43,25 @@ function context_deleteSection()
 					}
 					// Unlink the section file.
 					fs.unlink(sec, (err) => { if(err) throw err; });
+					// Erase the listing.
+					rootList.splice(id, 1);
+					// Save the data.
+					SaveRootList();
+					// Regenerate section list.
+					regenSections();
 				});
 			}
 			else
 			{
 				// Unlink the section file.
 				fs.unlink(sec, (err) => { if(err) throw err; });
+				// Erase the listing.
+				rootList.splice(id, 1);
+				// Save the data.
+				SaveRootList();
+				// Regenerate section list.
+				regenSections();
 			}
-			// Erase the listing.
-			rootList.splice(id, 1);
-			// Save the data.
-			SaveRootList();
-			// Regenerate section list.
-			regenSections();
 		});
 }
 

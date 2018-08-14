@@ -70,6 +70,7 @@ html, body
 .sections_list
 {
 	flex: 1 1;
+	width: 200px;
 
 	padding-left: 5px;
 
@@ -143,6 +144,7 @@ html, body
 .files_list
 {
 	flex: 1 1;
+	width: 200px;
 	padding-left: 5px;
 
 	overflow-y: auto;
@@ -160,6 +162,12 @@ html, body
 	line-height: 70px;
 
 	background-color: #7e57c2;
+}
+
+.elem_text
+{
+	margin-left: 15px;
+	margin-right: 15px;
 }
 
 .file_elem:hover { background-color: #7248bc; }
@@ -221,6 +229,13 @@ html, body
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
+}
+
+.fixTextOverflow
+{
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .overlaybg
