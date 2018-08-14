@@ -14,8 +14,10 @@ var currDrawPath;
 var currPlot;
 var currDrawDist;
 
+var panning = false;
 var panStart;
 
+var drawing = false;
 var lastMousePos;
 
 var initialPinchPoints;
@@ -112,6 +114,7 @@ function GetPlotStr(plot)
 
 function startDraw(pt)
 {
+	drawing = true;
     lastMousePos = pt;
 	// Get the clicked point in SVG coordinates.
 	pt = doc_display.point(pt.x, pt.y);
@@ -127,6 +130,10 @@ function startDraw(pt)
 // Note: Assumes that we started the draw at some point. So make sure at least currDrawDist is valid.
 function moveDraw(pt, pointer)
 {
+	if(!drawing)
+	{
+		return;
+	}
 	// Get the amount the mouse has moved.
     var delta = {x: pt.x - lastMousePos.x, y: pt.y - lastMousePos.y};
     lastMousePos = pt;
@@ -158,6 +165,10 @@ function moveDraw(pt, pointer)
 
 function stopDraw(pt)
 {
+	if(!drawing)
+	{
+		return;
+	}
 	// Calculate the clicked point in SVG coordinates.
 	pt = doc_display.point(pt.x, pt.y);
 	// Add the last point to the plot.
@@ -169,16 +180,22 @@ function stopDraw(pt)
 	currDrawPath = undefined;
     currPlot = undefined;
     lastMousePos = undefined;
+	drawing = false;
 }
 
 function startPan(pt)
 {
+	panning = true;
 	// Just store the start point of the pan so we can later calculate the delta of the pan.
 	panStart = doc_display.point(pt.x, pt.y);
 }
 
 function movePan(pt)
 {
+	if(!panning)
+	{
+		return;
+	}
 	// Get the clicked point in SVG coordinates.
 	var panEnd = doc_display.point(pt.x, pt.y);
 	// Get how much the pan moved.
@@ -193,8 +210,13 @@ function movePan(pt)
 
 function stopPan()
 {
+	if(!panning)
+	{
+		return;
+	}
 	// Clear the panning variable.
 	panStart = undefined;
+	panning = false;
 }
 
 function startPinch(pt1, pt2)

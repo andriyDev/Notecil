@@ -88,7 +88,7 @@ function onMouseUp(ev)
 	}
 	else if(ev.button == 2) // RMB: Pan
 	{
-		stopPan({x: ev.clientX, y: ev.clientY});
+		stopPan();
 	}
 }
 
@@ -152,6 +152,41 @@ function onPenMove(ev)
 		moveDraw({x: ev.clientX, y: ev.clientY});
 	}
 	// TODO: Erase and select
+}
+
+// Event handler for when a pointer has exited
+function handlePointerExit(ev)
+{
+	switch(ev.pointerType)
+	{
+		case "mouse":
+			onMouseExit(ev);
+			break;
+		case "pen":
+			onPenExit(ev);
+			break;
+		case "touch":
+			// There is no exit event for touch, so we can ignore it.
+			break;
+		default:
+			if(!printedPointerNotSupportedMsg)
+			{
+				printedPointerNotSupportedMsg = true;
+				console.err("Pointer Type \"" + ev.pointerType + "\" is not supported!");
+			}
+			break;
+	}
+}
+
+function onMouseExit(ev)
+{
+	stopDraw({x: ev.clientX, y: ev.clientY});
+	stopPan();
+}
+
+function onPenExit(ev)
+{
+	stopDraw({x: ev.clientX, y: ev.clientY});
 }
 
 function onTouchDown(ev)
@@ -264,6 +299,7 @@ function docevents_init()
 	doc_display.on("pointerdown", handlePointerDown, window);
 	doc_display.on("pointerup", handlePointerUp, window);
 	doc_display.on("pointermove", handlePointerMove, window);
+	doc_display.on("pointerleave", handlePointerExit, window);
 
 	// For some reason, the touch events don't work properly as pointer events.
 	// So instead, we will assign direct event handlers.
@@ -272,8 +308,6 @@ function docevents_init()
 	doc_display.on("touchmove", onTouchMove, window);
 
 	doc_display.on("wheel", zoom, window);
-
-	// TODO: Stop using tools if mouse leaves doc window. Otherwise it has strange effects.
 
 	// Assign an arbitrary viewbox.
 	doc_display.viewbox(0,0,1000,1000);
