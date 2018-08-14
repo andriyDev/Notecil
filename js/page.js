@@ -182,6 +182,7 @@ function context_deletePage()
 		{
 			// TODO: do something when there's no open page.
 			openedPageInd = undefined;
+			openedPage = undefined;
 			// Update the title to match the fact that no documents are open.
 			$(document).attr("title", "Notecil");
 		}
