@@ -16,7 +16,7 @@ const section_context_template =
 	{ label: 'Move Up', click() { MoveSection(context_target, -1); } },
 	{ label: 'Move Down', click() { MoveSection(context_target, 1); } },
 	{ type: 'separator' },
-	{ label: 'Delete', click() { context_deleteSection(); }
+	{ label: 'Delete', click() { context_deleteSection(); } }
 ];
 
 const page_context_template =
@@ -26,6 +26,7 @@ const page_context_template =
 	{ label: 'Move Up', click() { MovePage(context_target, -1); } },
 	{ label: 'Move Down', click() { MovePage(context_target, 1); } },
 	{ label: 'Duplicate', click() { context_duplicatePage(); } },
+	{ label: 'Export', click() { ExportPage(); } },
 	{ type: 'separator' },
 	{ label: 'Delete', click() { context_deletePage(); } }
 ];
@@ -112,6 +113,60 @@ function context_duplicatePage()
 			// Regenerate page list.
 			regenPages();
 		});
+}
+
+function ExportPage()
+{
+	// Let the user pick a file.
+	var file = electron.remote.dialog.showSaveDialog(electron.remote.getCurrentWindow(), {title: "Export As...", filters: [{name: "HTML/SVG", extensions: ["html"]}]});
+	// We check to make sure that a valid file was selected.
+	if(!file)
+	{
+		return;
+	}
+	var min = undefined;
+	var max = undefined;
+	var file_data = "";
+	fs.readFile(GetPagePath(PageButtonToData(context_target)), {encoding: null}, (err, data) => {
+		if (err) throw err;
+		var paths = data.readUInt32BE(0);
+		// This will be our byte index.
+		var totalBox;
+		var b = 4;
+		for(var i = 0; i < paths; i++)
+		{
+			// Read the path len.
+			var path_len = data.readUInt32BE(b);
+			b += 4;
+			// Allocate an array with <path_len> elements.
+			var plot = new Array(path_len);
+			for(var j = 0; j < path_len; j++)
+			{
+				plot[j] = {x: data.readFloatBE(b), y: data.readFloatBE(b + 4)};
+				if(i == 0 && j == 0)
+				{
+					min = plot[j];
+					max = plot[j];
+				}
+				else
+				{
+					min = {x: Math.min(min.x, plot[j].x), y: Math.min(min.y, plot[j].y)};
+					max = {x: Math.max(max.x, plot[j].x), y: Math.max(max.y, plot[j].y)};
+				}
+				b += 8;
+			}
+			// TODO: Make this load the correct "brush"
+			file_data += '<path d="' + GetPlotStr(plot) + '" fill="none" stroke="#000000" stroke-width="5"></path>';
+		}
+		min.x -= 100;
+		min.y -= 100;
+		max.x += 100;
+		max.y += 100;
+		file_data += "</svg></body></html>";
+		fs.writeFile(file, "<html style='margin: 0; padding: 0;'><body style='margin: 0; padding: 0;'><svg width='" + (max.x - min.x) + "' height='" + (max.y - min.y) + "'>" + file_data, (err) => {
+			if (err) throw err;
+		});
+	});
 }
 
 function context_deletePage()
