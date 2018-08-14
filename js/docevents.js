@@ -232,6 +232,30 @@ function onTouchUp(ev)
     }
 }
 
+// Factor to multiply zoom amount by.
+const zoomSpeed = 0.0035;
+
+function zoom(ev)
+{
+	// Get viewbox properties.
+	var v = doc_display.viewbox();
+    var vc = {x: v.x + v.width * 0.5, y: v.y + v.height * 0.5};
+    var ve = {x: v.width * 0.5, y: v.height * 0.5};
+
+	// Zoom! We use pow so that negative numbers undo the positive versions.
+    ve.x *= Math.pow(2, zoomSpeed * ev.deltaY);
+    ve.y *= Math.pow(2, zoomSpeed * ev.deltaY);
+
+	// Recompute viewbox
+    v.x = vc.x - ve.x;
+    v.y = vc.y - ve.y;
+    v.width = ve.x * 2;
+    v.height = ve.y * 2;
+
+	// Apply viewbox.
+    doc_display.viewbox(v);
+}
+
 function docevents_init()
 {
 	// Create the svg view.
@@ -246,6 +270,8 @@ function docevents_init()
 	doc_display.on("touchstart", onTouchDown, window);
 	doc_display.on("touchend", onTouchUp, window);
 	doc_display.on("touchmove", onTouchMove, window);
+
+	doc_display.on("wheel", zoom, window);
 
 	// TODO: Stop using tools if mouse leaves doc window. Otherwise it has strange effects.
 
