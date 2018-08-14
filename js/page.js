@@ -142,7 +142,9 @@ function ExportPage()
 			var plot = new Array(path_len);
 			for(var j = 0; j < path_len; j++)
 			{
+				// Get the x, y coordinates.
 				plot[j] = {x: data.readFloatBE(b), y: data.readFloatBE(b + 4)};
+				// Make sure to get the correct bounds.
 				if(i == 0 && j == 0)
 				{
 					min = plot[j];
@@ -158,11 +160,13 @@ function ExportPage()
 			// TODO: Make this load the correct "brush"
 			file_data += '<path d="' + GetPlotStr(plot) + '" fill="none" stroke="#000000" stroke-width="5"></path>';
 		}
+		// Adjust the bounds so its not too suffocating
 		min.x -= 100;
 		min.y -= 100;
 		max.x += 100;
 		max.y += 100;
 		file_data += "</svg></body></html>";
+		// Write the final file.
 		fs.writeFile(file, "<html style='margin: 0; padding: 0;'><body style='margin: 0; padding: 0;'><svg width='" + (max.x - min.x) + "' height='" + (max.y - min.y) + "'>" + file_data, (err) => {
 			if (err) throw err;
 		});
