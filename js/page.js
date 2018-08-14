@@ -12,7 +12,7 @@ var context_target;
 const section_context_template =
 [
 	{ label: 'Rename', click () { OpenRenameDialog(SectionButtonToData(context_target),
-		() => { SaveRootList(); regenSections(); }); } },
+		() => { UpdateWindowTitle(); SaveRootList(); regenSections(); }); } },
 	{ label: 'Move Up', click() { MoveSection(context_target, -1); } },
 	{ label: 'Move Down', click() { MoveSection(context_target, 1); } },
 	{ type: 'separator' },
@@ -22,7 +22,7 @@ const section_context_template =
 const page_context_template =
 [
 	{ label: 'Rename', click () { OpenRenameDialog(PageButtonToData(context_target),
-		() => { $(document).attr("title", "Notecil - " + rootList[selectedSection].name + ": " + PageButtonToData(context_target).name); SavePageList(); regenPages(); }); } },
+		() => { UpdateWindowTitle(); SavePageList(); regenPages(); }); } },
 	{ label: 'Move Up', click() { MovePage(context_target, -1); } },
 	{ label: 'Move Down', click() { MovePage(context_target, 1); } },
 	{ label: 'Duplicate', click() { context_duplicatePage(); } },
@@ -94,6 +94,23 @@ function GetValidPageName()
 	} while (currentPages[fn]);
 
 	return fn;
+}
+
+function UpdateWindowTitle()
+{
+	if(openedPageInd)
+	{
+		// Make sure the page list is valid.
+		// If it's not, then modifications to the title shouldn't be happening anyway.
+		if(openedPageInd.section == selectedSection)
+		{
+			$(document).attr("title", "Notecil - " + rootList[selectedSection].name + ": " + pageList[openedPageInd.page].name);
+		}
+	}
+	else
+	{
+		$(document).attr("title", "Notecil");
+	}
 }
 
 // === Context Events ===
@@ -180,11 +197,7 @@ function context_deletePage()
 	{
 		if(openedPageInd.page == id)
 		{
-			// TODO: do something when there's no open page.
-			openedPageInd = undefined;
-			openedPage = undefined;
-			// Update the title to match the fact that no documents are open.
-			$(document).attr("title", "Notecil");
+			openPage(-1);
 		}
 		// If the opened document is further down the list, we need to update the index to move up 1.
 		else if(openedPageInd.page > id)
@@ -365,12 +378,23 @@ function openPage(ind)
 		savePage();
 	}
 
+	if(ind == -1)
+	{
+		openedPageInd = undefined;
+		openedPage = undefined;
+		UpdateWindowTitle();
+		
+		// TODO: Hide the doc.
+
+		return;
+	}
+
 	if(!openedPageInd || openedPageInd.page != ind || openedPageInd.section != selectedSection)
 	{
 		openedPageInd = {section: selectedSection, page: ind};
 		// Update the title to match the page we are editing.
-		$(document).attr("title", "Notecil - " + rootList[selectedSection].name + ": " + pageList[ind].name);
 		openedPage = GetPagePath(ind);
+		UpdateWindowTitle();
 
 		reloadPage();
 

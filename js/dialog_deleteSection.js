@@ -23,10 +23,7 @@ function context_deleteSection()
 			}
 			if(openedPageInd.section == id)
 			{
-				openedPageInd = undefined;
-				openedPage = undefined;
-				// Update the title to match the fact that no documents are open.
-				$(document).attr("title", "Notecil");
+				openPage(-1);
 			}
 			var sec = GetSectionPath(id);
 			if(deletePages)
