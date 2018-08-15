@@ -402,6 +402,18 @@ function openPage(ind)
 	}
 }
 
+function isPathSelection(path)
+{
+	for(var i = 0; i < selectionPaths.length; i++)
+	{
+		if(path === selectionPaths[i])
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 function savePage()
 {
 	var paths = $('#doc').children().children().filter("path").toArray();
@@ -414,6 +426,11 @@ function savePage()
 	var tl = 4;
 	for(var i = 0; i < paths.length; i++)
 	{
+		// Make sure the path is not part of the selection ui.
+		if(isPathSelection(paths[i]))
+		{
+			continue;
+		}
 		// Get the plot.
 		var path_data = extractPlotFromPath(SVG.adopt(paths[i]));
 		// Allocate the number of bytes required for the length and then bytes enough for the plot.
