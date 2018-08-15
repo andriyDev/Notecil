@@ -44,7 +44,8 @@ function onMouseDown(ev)
 
 	if(ev.button == 0) // LMB: Draw
 	{
-		currentTool = new BrushTool(ev.pointer);
+		// currentTool = new BrushTool(ev.pointer);
+		currentTool = new SelectTool();
 	}
 	else if(ev.button == 2) // RMB: Pan
 	{

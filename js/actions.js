@@ -9,6 +9,9 @@ const plotSmoothingRatio = 0.1;
 var initialPinchPoints;
 var initialPinchBox;
 
+var selectedPaths;
+var selectionPaths;
+
 // A class to generalize what a tool must have.
 class Tool
 {
@@ -28,91 +31,6 @@ class Tool
 	// Stops using the tool. This is a cleanup function.
 	stopUse() {}
 }
-
-class BrushTool extends Tool
-{
-	constructor(pointer)
-	{
-		super();
-		this.drawDist = 0;
-		this.drawPath = undefined;
-		this.plot = undefined;
-		this.lastMousePos = undefined;
-
-		this.pointer = pointer;
-	}
-
-	startUse(pt)
-	{
-		super.startUse(pt);
-		this.lastMousePos = pt;
-		// Get the clicked point in SVG coordinates.
-		pt = doc_display.point(pt.x, pt.y);
-		// Keep track of the point clicked. This is to detect how far the user has moved.
-		this.drawDist = 0;
-		// Start the plot list.
-		this.plot = [{x: pt.x, y: pt.y}];
-		// Create the path.
-		// TODO: Make attr depend on the current "brush" (as in stroke-width and colour)
-		this.drawPath = doc_display.path(GetPlotStr(this.lot)).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
-	}
-
-	moveUse(pt)
-	{
-		super.moveUse(pt);
-		// Get the amount the mouse has moved.
-		var delta = {x: pt.x - this.lastMousePos.x, y: pt.y - this.lastMousePos.y};
-		this.lastMousePos = pt;
-
-		// Sometimes my pen flys across the screen for no reason, so to counter this,
-		// I limit the amount the pointer can move.
-		if(this.pointer == "pen" && getVecLen(delta) > BrushTool.maxMoveDistance)
-		{
-			return;
-		}
-
-		// Add the amount we moved to the current distance we have moved.
-		this.drawDist += delta.x * delta.x + delta.y * delta.y;
-
-		// Is the distance from the last point more than the distance to draw a line?
-		// This is to decrease file size. No need to add points too often.
-		if(this.drawDist >= BrushTool.distanceForLine * BrushTool.distanceForLine)
-		{
-			// If so, add the new line and set the last draw point to this point.
-			// Compute the clicked point in SVG coordinates.
-			pt = doc_display.point(pt.x, pt.y);
-			// Add the point to the plot.
-			this.plot.push({x: pt.x, y: pt.y});
-			// Update the path.
-			this.drawPath.plot(GetPlotStr(this.plot));
-			this.drawDist = 0;
-		}
-	}
-
-	stopUse()
-	{
-		super.stopUse();
-
-		// Calculate the clicked point in SVG coordinates.
-		var pt = doc_display.point(this.lastMousePos.x, this.lastMousePos.y);
-		// Add the last point to the plot.
-		this.plot.push({x: pt.x, y: pt.y});
-		// Update the path.
-		this.drawPath.plot(GetPlotStr(this.plot));
-		// Clear everything.
-		this.drawDist = undefined;
-		this.drawPath = undefined;
-		this.plot = undefined;
-		this.lastMousePos = undefined;
-	}
-}
-
-// === Brush Tool Static Values === //
-
-// How much does the cursor have to move before generating another line.
-BrushTool.distanceForLine = 3;
-// The maximum distance that the mouse can move before the input is ignored. This is for when the pen decides to fly off the rails.
-BrushTool.maxMoveDistance = 20;
 
 class PanTool extends Tool
 {
@@ -149,6 +67,271 @@ class PanTool extends Tool
 		this.startPt = undefined;
 	}
 }
+
+class PointerTool extends Tool
+{
+	constructor(pointer)
+	{
+		super();
+		this.drawDist = 0;
+		this.lastMousePos = undefined;
+
+		this.pointer = pointer;
+	}
+
+	startPlot()
+	{
+		// Nothing to do for the generic pointer tool.
+	}
+
+	addPoint(pt)
+	{
+		// Nothing to do for the generic pointer tool.
+	}
+
+	endPlot()
+	{
+		// Nothing to do for the generic pointer tool.
+	}
+
+	startUse(pt)
+	{
+		super.startUse(pt);
+		this.lastMousePos = pt;
+		// Get the clicked point in SVG coordinates.
+		pt = doc_display.point(pt.x, pt.y);
+		// Keep track of the point clicked. This is to detect how far the user has moved.
+		this.drawDist = 0;
+		// Begin the plot.
+		this.startPlot(pt);
+	}
+
+	moveUse(pt)
+	{
+		super.moveUse(pt);
+		// Get the amount the mouse has moved.
+		var delta = {x: pt.x - this.lastMousePos.x, y: pt.y - this.lastMousePos.y};
+
+		// Sometimes my pen flys across the screen for no reason, so to counter this,
+		// I limit the amount the pointer can move.
+		if(this.pointer == "pen" && getVecLen(delta) > PointerTool.maxMoveDistance)
+		{
+			return;
+		}
+		this.lastMousePos = pt;
+
+		// Add the amount we moved to the current distance we have moved.
+		this.drawDist += delta.x * delta.x + delta.y * delta.y;
+
+		// Is the distance from the last point more than the distance to draw a line?
+		// This is for performance, no need to add too many points.
+		if(this.drawDist >= PointerTool.distanceForLine * PointerTool.distanceForLine)
+		{
+			// If so, add the new point.
+			// Compute the clicked point in SVG coordinates.
+			pt = doc_display.point(pt.x, pt.y);
+			// Add the point.
+			this.addPoint(pt);
+			// Reset the drawDist.
+			this.drawDist = 0;
+		}
+	}
+
+	stopUse(pt)
+	{
+		super.stopUse();
+
+		// Calculate the clicked point in SVG coordinates.
+		var pt = doc_display.point(this.lastMousePos.x, this.lastMousePos.y);
+		// End the plot.
+		this.endPlot(pt);
+		// Clear everything.
+		this.drawDist = undefined;
+		this.lastMousePos = undefined;
+	}
+}
+
+// === Pointer Tool Static Values === //
+
+// How much does the cursor have to move before generating another point.
+PointerTool.distanceForLine = 3;
+// The maximum distance that the mouse can move before the input is ignored. This is for when the pen decides to fly off the rails.
+PointerTool.maxMoveDistance = 20;
+
+class BrushTool extends PointerTool
+{
+	constructor(pointer)
+	{
+		super(pointer);
+	}
+
+	startPlot(pt)
+	{
+		super.startPlot(pt);
+		// Start the plot list.
+		this.plot = [{x: pt.x, y: pt.y}];
+		// Create the path.
+		// TODO: Make attr depend on the current "brush" (as in stroke-width and colour)
+		this.drawPath = doc_display.path(GetPlotStr(this.lot)).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
+	}
+
+	addPoint(pt)
+	{
+		super.addPoint(pt);
+		// Add the point to the plot.
+		this.plot.push({x: pt.x, y: pt.y});
+		// Update the path.
+		this.drawPath.plot(GetPlotStr(this.plot));
+	}
+
+	endPlot(pt)
+	{
+		this.addPoint(pt);
+	}
+}
+
+// This function is an implementation of the algorithm described on this page:
+// http://geomalgorithms.com/a03-_inclusion.html
+function GetWindingNumber(polygon, point)
+{
+	var winding = 0;
+
+	// Since the last point is equal to the first, we can ignore it.
+	for(var i = 0; i < polygon.length - 1; i++)
+	{
+		// If both points of the edge are to the left of the point, then there is no way to intersect a
+		// ray moving to the right.
+		if(polygon[i].x < point.x && polygon[i + 1].x < point.x)
+		{
+			continue;
+		}
+		// Get position relative to the point for each edge point.
+		var diff = (polygon[i].y - point.y);
+		var diff_next = (polygon[i + 1].y - point.y);
+		
+		// If one point is above and one is below (one positive, one negative),
+		// or a point is intersected (equals 0), then this will effect the winding number.
+		if(diff * diff_next <= 0)
+		{
+			// Compute the direction the edge is going (up or down).
+			var edge_dir = (polygon[i + 1].y - polygon[i].y);
+			// Here we assume that the edge is not going perfectly horizontal.
+			// If it is, we treat it as an edge going up.
+			if(edge_dir <= 0)
+			{
+				winding++;
+			}
+			else
+			{
+				winding--;
+			}
+		}
+	}
+
+	return winding;
+}
+
+class SelectTool extends PointerTool
+{
+	constructor()
+	{
+		super();
+	}
+	
+	startPlot(pt)
+	{
+		// Start the plot list.
+		this.plot = [{x: pt.x, y: pt.y}];
+		// Initialize the max and min points for a bounding box.
+		this.min_pt = {x: pt.x, y: pt.y};
+		this.max_pt = {x: pt.x, y: pt.y};
+		// Create the selection ghost.
+		this.drawPath = doc_display.path(GetPlotStr(this.lot)).attr({fill: "#909090", stroke: '#909090', "stroke-width": 5, "fill-opacity": 0.35});
+		// If we did have a selection, make sure to clear the ui.
+		if(selectionPaths)
+		{
+			for(var i = 0; i < selectionPaths.length; i++)
+			{
+				selectionPaths[i].remove();
+			}
+		}
+		// If we did have a selection, make sure ti clear it.
+		if(selectedPaths)
+		{
+			selectedPaths = undefined;
+		}
+		selectionPaths = [];
+		selectedPaths = [];
+	}
+	
+	addPoint(pt)
+	{
+		// Add the point.
+		this.plot.push({x: pt.x, y: pt.y});
+		// Ensure that the new point is contained in the bounding box.
+		this.min_pt = {x: Math.min(pt.x, this.min_pt.x), y: Math.min(pt.y, this.min_pt.y)};
+		this.max_pt = {x: Math.max(pt.x, this.max_pt.x), y: Math.max(pt.y, this.max_pt.y)};
+		// Update the path.
+		this.drawPath.plot(GetPlotStr(this.plot));
+	}
+
+	endPlot(pt)
+	{
+		// Add the point.
+		this.plot.push({x: pt.x, y: pt.y});
+		// Ensure that the new point is contained in the bounding box.
+		this.min_pt = {x: Math.min(pt.x, this.min_pt.x), y: Math.min(pt.y, this.min_pt.y)};
+		this.max_pt = {x: Math.max(pt.x, this.max_pt.x), y: Math.max(pt.y, this.max_pt.y)};
+		// Add the final point.
+		this.plot.push(this.plot[0]);
+		// Get rid of the selection ghost.
+		this.drawPath.remove();
+
+		var paths = doc_display.children();
+		console.log(paths.length);
+		for(var i = 0; i < paths.length; i++)
+		{
+			var bbox = paths[i].bbox();
+			// If the bounding boxes do not intersect, then don't bother calculating it.
+			if(this.min_pt.x > bbox.x2 || this.min_pt.y > bbox.y2 &&
+				this.max_pt.x < bbox.x || this.max_pt.y < bbox.y)
+			{
+				continue;
+			}
+
+			// Get the points in the plot.
+			var pathPlot = extractPlotFromPath(paths[i]);
+			var pointsInSelect = 0;
+			for(var j = 0; j < pathPlot.length; j++)
+			{
+				// Get the winding number of each point and make sure it is positive.
+				if(GetWindingNumber(this.plot, pathPlot[j]) > 0)
+				{
+					// Increment the number if points in the selection region.
+					pointsInSelect++;
+					// If the percentage of points in the selection region surpasses the percentToSelect
+					// Then select it!
+					if(pointsInSelect / pathPlot.length >= SelectTool.percentToSelect)
+					{
+						// Add a path to underline the selected path.
+						var select_path = doc_display.path(GetPlotStr(pathPlot)).attr({fill: "none", stroke: "#909090", "stroke-opacity": 0.5, "stroke-width": paths[i].attr("stroke-width") * (1 + SelectTool.selectWidth)});
+						select_path.after(paths[i]);
+						selectionPaths.push(select_path);
+						// Add the path to the selection.
+						selectedPaths.push(paths[i]);
+						// We don't need to check any more points.
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+// === Select Tool Constants ===
+
+SelectTool.percentToSelect = 0.5;
+SelectTool.selectWidth = 0.5;
 
 // Given a path that was generated from this code, we can extract the points used to create it.
 // Use this function to do so.
