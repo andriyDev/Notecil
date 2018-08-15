@@ -1,27 +1,154 @@
 
 // === Constants ===
 
-// How much does the cursor have to move before generating another line.
-const distanceForLine = 3;
-// The maximum distance that the mouse can move before the input is ignored. This is for when the pen decides to fly off the rails.
-const maxMoveDistance = 20;
 // How much should the path be smoothed. This means how much is the path allowed to deviate from the drawn points.
 const plotSmoothingRatio = 0.1;
 
 // === State ===
 
-var currDrawPath;
-var currPlot;
-var currDrawDist;
-
-var panning = false;
-var panStart;
-
-var drawing = false;
-var lastMousePos;
-
 var initialPinchPoints;
 var initialPinchBox;
+
+// A class to generalize what a tool must have.
+class Tool
+{
+	constructor()
+	{
+
+	}
+
+	// Start using the tool.
+	// pt is the point on the screen
+	startUse(pt) {}
+
+	// Moves the tool to a new location.
+	// pt is the point on the screen.
+	moveUse(pt) {}
+
+	// Stops using the tool. This is a cleanup function.
+	stopUse() {}
+}
+
+class BrushTool extends Tool
+{
+	constructor(pointer)
+	{
+		super();
+		this.drawDist = 0;
+		this.drawPath = undefined;
+		this.plot = undefined;
+		this.lastMousePos = undefined;
+
+		this.pointer = pointer;
+	}
+
+	startUse(pt)
+	{
+		super.startUse(pt);
+		this.lastMousePos = pt;
+		// Get the clicked point in SVG coordinates.
+		pt = doc_display.point(pt.x, pt.y);
+		// Keep track of the point clicked. This is to detect how far the user has moved.
+		this.drawDist = 0;
+		// Start the plot list.
+		this.plot = [{x: pt.x, y: pt.y}];
+		// Create the path.
+		// TODO: Make attr depend on the current "brush" (as in stroke-width and colour)
+		this.drawPath = doc_display.path(GetPlotStr(this.lot)).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
+	}
+
+	moveUse(pt)
+	{
+		super.moveUse(pt);
+		// Get the amount the mouse has moved.
+		var delta = {x: pt.x - this.lastMousePos.x, y: pt.y - this.lastMousePos.y};
+		this.lastMousePos = pt;
+
+		// Sometimes my pen flys across the screen for no reason, so to counter this,
+		// I limit the amount the pointer can move.
+		if(this.pointer == "pen" && getVecLen(delta) > BrushTool.maxMoveDistance)
+		{
+			return;
+		}
+
+		// Add the amount we moved to the current distance we have moved.
+		this.drawDist += delta.x * delta.x + delta.y * delta.y;
+
+		// Is the distance from the last point more than the distance to draw a line?
+		// This is to decrease file size. No need to add points too often.
+		if(this.drawDist >= BrushTool.distanceForLine * BrushTool.distanceForLine)
+		{
+			// If so, add the new line and set the last draw point to this point.
+			// Compute the clicked point in SVG coordinates.
+			pt = doc_display.point(pt.x, pt.y);
+			// Add the point to the plot.
+			this.plot.push({x: pt.x, y: pt.y});
+			// Update the path.
+			this.drawPath.plot(GetPlotStr(this.plot));
+			this.drawDist = 0;
+		}
+	}
+
+	stopUse()
+	{
+		super.stopUse();
+
+		// Calculate the clicked point in SVG coordinates.
+		var pt = doc_display.point(this.lastMousePos.x, this.lastMousePos.y);
+		// Add the last point to the plot.
+		this.plot.push({x: pt.x, y: pt.y});
+		// Update the path.
+		this.drawPath.plot(GetPlotStr(this.plot));
+		// Clear everything.
+		this.drawDist = undefined;
+		this.drawPath = undefined;
+		this.plot = undefined;
+		this.lastMousePos = undefined;
+	}
+}
+
+// === Brush Tool Static Values === //
+
+// How much does the cursor have to move before generating another line.
+BrushTool.distanceForLine = 3;
+// The maximum distance that the mouse can move before the input is ignored. This is for when the pen decides to fly off the rails.
+BrushTool.maxMoveDistance = 20;
+
+class PanTool extends Tool
+{
+	constructor()
+	{
+		super();
+	}
+
+	startUse(pt)
+	{
+		super.startUse(pt);
+		// Just store the start point of the pan so we can later calculate the delta of the pan.
+		this.startPt = doc_display.point(pt.x, pt.y);
+	}
+
+	moveUse(pt)
+	{
+		super.moveUse(pt);
+		// Get the clicked point in SVG coordinates.
+		var panEnd = doc_display.point(pt.x, pt.y);
+		// Get how much the pan moved.
+		var deltaPan = {x: panEnd.x - this.startPt.x, y: panEnd.y - this.startPt.y};
+
+		// Use the delta to adjust the viewbox.
+		var v = doc_display.viewbox();
+		v.x -= deltaPan.x;
+		v.y -= deltaPan.y;
+		doc_display.viewbox(v);
+	}
+
+	stopUse()
+	{
+		super.stopUse();
+		this.startPt = undefined;
+	}
+}
 
 // Given a path that was generated from this code, we can extract the points used to create it.
 // Use this function to do so.
@@ -112,112 +239,7 @@ function GetPlotStr(plot)
 	return str;
 }
 
-function startDraw(pt)
-{
-	drawing = true;
-    lastMousePos = pt;
-	// Get the clicked point in SVG coordinates.
-	pt = doc_display.point(pt.x, pt.y);
-	// Keep track of the point clicked. This is to detect how far the user has moved.
-	currDrawDist = 0;
-	// Start the plot list.
-	currPlot = [{x: pt.x, y: pt.y}];
-	// Create the path.
-	// TODO: Make attr depend on the current "brush" (as in stroke-width and colour)
-	currDrawPath = doc_display.path(GetPlotStr(currPlot)).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
-}
 
-// Note: Assumes that we started the draw at some point. So make sure at least currDrawDist is valid.
-function moveDraw(pt, pointer)
-{
-	if(!drawing)
-	{
-		return;
-	}
-	// Get the amount the mouse has moved.
-    var delta = {x: pt.x - lastMousePos.x, y: pt.y - lastMousePos.y};
-    lastMousePos = pt;
-
-	// Sometimes my pen flys across the screen for no reason, so to counter this,
-	// I limit the amount the pen can move.
-	if(pointer == "pen" && getVecLen(delta) > maxMoveDistance)
-	{
-		return;
-	}
-
-	// Add the amount we moved to the current distance we have moved.
-	currDrawDist += delta.x * delta.x + delta.y * delta.y;
-
-	// Is the distance from the last point more than the distance to draw a line?
-	// This is to decrease file size. No need to add points too often.
-	if(currDrawDist >= distanceForLine * distanceForLine)
-	{
-		// If so, add the new line and set the last draw point to this point.
-		// Compute the clicked point in SVG coordinates.
-		pt = doc_display.point(pt.x, pt.y);
-		// Add the point to the plot.
-		currPlot.push({x: pt.x, y: pt.y});
-		// Update the path.
-		currDrawPath.plot(GetPlotStr(currPlot));
-		currDrawDist = 0;
-	}
-}
-
-function stopDraw(pt)
-{
-	if(!drawing)
-	{
-		return;
-	}
-	// Calculate the clicked point in SVG coordinates.
-	pt = doc_display.point(pt.x, pt.y);
-	// Add the last point to the plot.
-	currPlot.push({x: pt.x, y: pt.y});
-	// Update the path.
-	currDrawPath.plot(GetPlotStr(currPlot));
-	// Clear everything.
-	currDrawDist = undefined;
-	currDrawPath = undefined;
-    currPlot = undefined;
-    lastMousePos = undefined;
-	drawing = false;
-}
-
-function startPan(pt)
-{
-	panning = true;
-	// Just store the start point of the pan so we can later calculate the delta of the pan.
-	panStart = doc_display.point(pt.x, pt.y);
-}
-
-function movePan(pt)
-{
-	if(!panning)
-	{
-		return;
-	}
-	// Get the clicked point in SVG coordinates.
-	var panEnd = doc_display.point(pt.x, pt.y);
-	// Get how much the pan moved.
-	var deltaPan = {x: panEnd.x - panStart.x, y: panEnd.y - panStart.y};
-
-	// Use the delta to adjust the viewbox.
-	var v = doc_display.viewbox();
-	v.x -= deltaPan.x;
-	v.y -= deltaPan.y;
-	doc_display.viewbox(v);
-}
-
-function stopPan()
-{
-	if(!panning)
-	{
-		return;
-	}
-	// Clear the panning variable.
-	panStart = undefined;
-	panning = false;
-}
 
 function startPinch(pt1, pt2)
 {

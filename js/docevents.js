@@ -1,6 +1,17 @@
 
 var touchState = 0;
 
+var currentTool = undefined;
+
+function clearTool()
+{
+	if(currentTool)
+	{
+		currentTool.stopUse();
+		currentTool = undefined;
+	}
+}
+
 // Event handler for when a pointer is down.
 function handlePointerDown(ev)
 {
@@ -29,21 +40,30 @@ function handlePointerDown(ev)
 
 function onMouseDown(ev)
 {
+	clearTool();
+
 	if(ev.button == 0) // LMB: Draw
 	{
-		startDraw({x: ev.clientX, y: ev.clientY});
+		currentTool = new BrushTool(ev.pointer);
 	}
 	else if(ev.button == 2) // RMB: Pan
 	{
-		startPan({x: ev.clientX, y: ev.clientY});
+		currentTool = new PanTool();
+	}
+
+	if(currentTool)
+	{
+		currentTool.startUse({x: ev.clientX, y: ev.clientY});
 	}
 }
 
 function onPenDown(ev)
 {
+	clearTool();
+
 	if(ev.button == 0) // Main: Draw
 	{
-		startDraw({x: ev.clientX, y: ev.clientY});
+		currentTool = new BrushTool(ev.pointer);
 	}
 	else if(ev.button == 5) // Btn1: Erase
 	{
@@ -52,6 +72,11 @@ function onPenDown(ev)
 	else if(ev.button == 2) // Btn2: Select
 	{
 		// TODO: Select
+	}
+
+	if(currentTool)
+	{
+		currentTool.startUse({x: ev.clientX, y: ev.clientY});
 	}
 }
 
@@ -82,30 +107,12 @@ function handlePointerUp(ev)
 
 function onMouseUp(ev)
 {
-	if(ev.button == 0) // LMB: Draw
-	{
-		stopDraw({x: ev.clientX, y: ev.clientY});
-	}
-	else if(ev.button == 2) // RMB: Pan
-	{
-		stopPan();
-	}
+	clearTool();
 }
 
 function onPenUp(ev)
 {
-	if(ev.button == 0) // Main: Draw
-	{
-		stopDraw({x: ev.clientX, y: ev.clientY});
-	}
-	else if(ev.button == 5) // Btn1: Erase
-	{
-		// TODO: Erase
-	}
-	else if(ev.button == 2) // Btn2: Select
-	{
-		// TODO: Select
-	}
+	clearTool();
 }
 
 // Event handler for when a pointer has moved.
@@ -135,23 +142,18 @@ function handlePointerMove(ev)
 
 function onMouseMove(ev)
 {
-	if(currDrawDist != undefined) // LMB: Draw
+	if(currentTool)
 	{
-		moveDraw({x: ev.clientX, y: ev.clientY}, ev.pointerType);
-	}
-	else if(panStart) // RMB: Pan
-	{
-		movePan({x: ev.clientX, y: ev.clientY});
+		currentTool.moveUse({x: ev.clientX, y: ev.clientY});
 	}
 }
 
 function onPenMove(ev)
 {
-	if(currDrawDist != undefined)
+	if(currentTool)
 	{
-		moveDraw({x: ev.clientX, y: ev.clientY});
+		currentTool.moveUse({x: ev.clientX, y: ev.clientY});
 	}
-	// TODO: Erase and select
 }
 
 // Event handler for when a pointer has exited
@@ -180,41 +182,37 @@ function handlePointerExit(ev)
 
 function onMouseExit(ev)
 {
-	stopDraw({x: ev.clientX, y: ev.clientY});
-	stopPan();
+	clearTool();
 }
 
 function onPenExit(ev)
 {
-	stopDraw({x: ev.clientX, y: ev.clientY});
+	clearTool();
 }
 
 function onTouchDown(ev)
 {
+	// Make sure we weren't using a tool (like panning).
+	clearTool();
     // We need to figure out what kind of gesture is being done.
     if(ev.targetTouches.length == 1)
     {
         touchState = 1;
         // If there is only one touch on the screen, that means we need to start panning.
-        startPan({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY});
+		currentTool = new PanTool();
+		currentTool.startUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY});
     }
     else if(ev.targetTouches.length == 2)
     {
-        if(touchState == 1)
-        {
-            stopPan();
-        }
         touchState = 2;
+		// If there are 2 touches, we need to start pinching.
         startPinch({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY}
                 , {x: ev.targetTouches.item(1).clientX, y: ev.targetTouches.item(1).clientY});
     }
     else
     {
-        if(touchState == 1)
-        {
-            stopPan();
-        }
-        else if(touchState == 2)
+		// Make sure we weren't pinching
+        if(touchState == 2)
         {
             stopPinch();
         }
@@ -226,7 +224,10 @@ function onTouchMove(ev)
 {
     if(touchState == 1)
     {
-        movePan({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY});
+		if(currentTool)
+		{
+        	currentTool.moveUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY});
+		}
     }
     else if (touchState == 2)
     {
@@ -237,16 +238,14 @@ function onTouchMove(ev)
 
 function onTouchUp(ev)
 {
+	// If we were panning, stop.
+	clearTool();
     // We need to figure out what kind of gesture is being done.
     if(ev.targetTouches.length == 0)
     {
         if(touchState == 2)
         {
             stopPinch();
-        }
-        else if(touchState == 1)
-        {
-            stopPan();
         }
         touchState = 0;
     }
@@ -257,7 +256,8 @@ function onTouchUp(ev)
             stopPinch();
         }
         touchState = 1;
-        startPan({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY});
+		currentTool = new PanTool();
+		currentTool.startUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY});
     }
     else if(ev.targetTouches.length == 2)
     {
@@ -312,3 +312,4 @@ function docevents_init()
 	// Assign an arbitrary viewbox.
 	doc_display.viewbox(0,0,1000,1000);
 }
+
