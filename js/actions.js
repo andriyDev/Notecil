@@ -272,7 +272,7 @@ class SelectTool extends PointerTool
 		this.min_pt = {x: Math.min(pt.x, this.min_pt.x), y: Math.min(pt.y, this.min_pt.y)};
 		this.max_pt = {x: Math.max(pt.x, this.max_pt.x), y: Math.max(pt.y, this.max_pt.y)};
 		// Update the path.
-		this.drawPath.plot(GetPlotStr(this.plot));
+		this.drawPath.plot(GetPlotStr(this.plot) + " Z");
 	}
 
 	endPlot(pt)
@@ -288,7 +288,6 @@ class SelectTool extends PointerTool
 		this.drawPath.remove();
 
 		var paths = doc_display.children();
-		console.log(paths.length);
 		for(var i = 0; i < paths.length; i++)
 		{
 			var bbox = paths[i].bbox();
@@ -331,7 +330,7 @@ class SelectTool extends PointerTool
 // === Select Tool Constants ===
 
 SelectTool.percentToSelect = 0.5;
-SelectTool.selectWidth = 0.5;
+SelectTool.selectWidth = 2;
 
 // Given a path that was generated from this code, we can extract the points used to create it.
 // Use this function to do so.
