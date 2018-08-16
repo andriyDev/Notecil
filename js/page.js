@@ -384,7 +384,8 @@ function openPage(ind)
 		openedPage = undefined;
 		UpdateWindowTitle();
 		
-		// TODO: Hide the doc.
+		$('#doc_hider').addClass('hidden');
+		$('#no_page').removeClass('hidden');
 
 		return;
 	}
@@ -396,6 +397,9 @@ function openPage(ind)
 		openedPage = GetPagePath(ind);
 		UpdateWindowTitle();
 
+		$('#doc_hider').removeClass('hidden');
+		$('#no_page').addClass('hidden');
+
 		reloadPage();
 
 		// TODO: Move the viewport to something more reasonable.
@@ -404,6 +408,10 @@ function openPage(ind)
 
 function isPathSelection(path)
 {
+	if(!selectionPaths)
+	{
+		return false;
+	}
 	for(var i = 0; i < selectionPaths.length; i++)
 	{
 		if(path === selectionPaths[i])

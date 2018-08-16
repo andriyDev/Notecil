@@ -2,7 +2,6 @@
 // === State ===
 
 var doc_display;
-var hidden_svg;
 
 var printedPointerNotSupportedMsg = false;
 

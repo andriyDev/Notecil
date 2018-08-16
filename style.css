@@ -199,8 +199,32 @@ html, body
 .mainView
 {
 	flex: 1 1 auto;
+}
+
+#doc_hider
+{
+	width: 100%;
+	height: 100%;
 	display: flex;
 	flex-direction: column;
+}
+
+#no_page
+{
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	background-color: #404040;
+}
+
+.no_page_text
+{
+	flex: 0 0 auto;
+	width: 100%;
+	text-align: center;
+	color: #808080;
+	font-size: 30;
 }
 
 .doc_toolbar
