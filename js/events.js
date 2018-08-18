@@ -21,16 +21,26 @@ function brush_click(ev)
 function brush_context()
 {
 	var t = $(this);
+	select_brush(parseInt(this.id.substring(5)));
 	$('#brush_popup').toggleClass('hidden').css({top: t.offset().top + t.height(), left: "" + t.offset().left});
+	if(brushes && selectedBrush != -1)
+	{
+		$('#brush_width').val(brushes[selectedBrush].width);
+		$('#brush_width_val').val(brushes[selectedBrush].width);
+		$('#brush_colour').val(brushes[selectedBrush].colour);
+	}
 }
 
 function brush_col_changed()
 {
 	var t = $(this);
 	var val = t.val();
-	for(var i = 0; i < selectedPaths.length; i++)
+	if(selectedPaths)
 	{
-		selectedPaths[i].attr('stroke', val);
+		for(var i = 0; i < selectedPaths.length; i++)
+		{
+			selectedPaths[i].attr('stroke', val);
+		}
 	}
 	if(brushes && selectedBrush != -1)
 	{
