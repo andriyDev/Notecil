@@ -8,6 +8,7 @@
 		<script src="js/svg.min.js"></script>
 		<script src="js/actions.js"></script>
 		<script src="js/docevents.js"></script>
+		<script src="js/events.js"></script>
 		<script src="js/dialog_addSection.js"></script>
 		<script src="js/dialog_addPage.js"></script>
 		<script src="js/dialog_rename.js"></script>
@@ -45,9 +46,9 @@
 				</div>
 			</div>
 		</div>
-		<div id="brush_popup">
+		<div id="brush_popup" class="hidden">
 			<div class="brush_width_row">
-				<input id="brush_width" type="range" min="0" max="1" value="0"/>
+				<input id="brush_width" type="range" min="0" max="1" step="0.01" value="0"/>
 				<input id="brush_width_val" type="text" value="0" />
 			</div>
 		</div>

@@ -16,6 +16,7 @@ function init()
 {
 	docevents_init();
 	page_init();
+	events_init();
 
 	dialog_addSection_init();
 	dialog_addPage_init();
