@@ -262,6 +262,40 @@ html, body
 	text-overflow: ellipsis;
 }
 
+#toolbar_brush
+{
+	height: 100%;
+	width: 40px;
+
+	border-right: solid 1px #cccccc;
+}
+
+#brush_popup
+{
+	position: fixed;
+	padding: 5px;
+	background-color: #dddddd;
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+}
+
+.brush_width_row
+{
+	display: flex;
+	flex-direction: row;
+}
+
+#brush_width
+{
+	flex: 1 1;
+}
+
+#brush_width_val
+{
+	width: 40px;
+}
+
 .overlaybg
 {
 	position: fixed;

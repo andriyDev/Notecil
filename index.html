@@ -32,7 +32,10 @@
 			</div>
 			<div class='mainView'>
 				<div id="doc_hider" class="hidden">
-					<div class="doc_toolbar"></div>
+					<div class="doc_toolbar">
+						<div id="toolbar_brush" class="divBtn">
+						</div>
+					</div>
 					<div id='doc' class='doc'></div>
 				</div>
 				<div id="no_page">
@@ -40,6 +43,12 @@
 					<div class="no_page_text">No page opened. Please open a page to edit.</div>
 					<div style="flex: 1 1 auto"></div>
 				</div>
+			</div>
+		</div>
+		<div id="brush_popup">
+			<div class="brush_width_row">
+				<input id="brush_width" type="range" min="0" max="1" value="0"/>
+				<input id="brush_width_val" type="text" value="0" />
 			</div>
 		</div>
 		<div id="addSectionOverlay" class="overlaybg hidden">
