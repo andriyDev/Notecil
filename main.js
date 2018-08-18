@@ -20,7 +20,7 @@ if(!fs.existsSync("window.cfg"))
 else
 {
 	// If the file does exist, we need to load it in.
-	cfg = JSON.parse(fs.readFileSync("config.cfg"));
+	cfg = JSON.parse(fs.readFileSync("window.cfg"));
 }
 
 app.commandLine.appendSwitch('disable-pinch');

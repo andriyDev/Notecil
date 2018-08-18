@@ -12,6 +12,9 @@ var initialPinchBox;
 var selectedPaths;
 var selectionPaths;
 
+var selectedBrush = -1;
+var brushes = [];
+
 // A class to generalize what a tool must have.
 class Tool
 {

@@ -10,7 +10,7 @@ function getConfigData()
 
 function saveConfigNow()
 {
-	fs.writeFile("config.cfg", JSON.serialize(getConfigData()), (err) => {
+	fs.writeFile("config.cfg", JSON.stringify(getConfigData()), (err) => {
 		if (err) throw err;
 	});
 }
@@ -27,16 +27,16 @@ function saveConfig()
 function setConfigData(data)
 {
 	brushes = data.brushes;
+	regenBrushList();
 }
 
 function cfg_init(callback)
 {
-	fs.readFile("config.cfg", function(err, data))
-	{
+	fs.readFile("config.cfg", (err, data) => {
 		if (err)
 		{
 			data = {brushes: [{colour: "#000000", width: 5}]};
-			fs.writeFile("config.cfg", JSON.serialize(data), (err) => {
+			fs.writeFile("config.cfg", JSON.stringify(data), (err) => {
 				if (err) throw err;
 			});
 		}
@@ -45,6 +45,6 @@ function cfg_init(callback)
 			data = JSON.parse(data);
 		}
 		setConfigData(data);
-	}
+	});
 }
 

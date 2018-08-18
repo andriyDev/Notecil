@@ -1,10 +1,21 @@
 
+function select_brush(brush_id)
+{
+	selectedBrush = brush_id;
+	if(selectedBrush == -1)
+	{
+		$('.toolbar_brush').removeClass("");
+		
+	}
+}
+
 function brush_click(ev)
 {
 	if(ev.button != 0)
 	{
 		return;
 	}
+	select_brush(parseInt(this.id.substring(5)));
 }
 
 function brush_context()
@@ -23,10 +34,25 @@ function brush_col_changed()
 	}
 }
 
+function regenBrushList()
+{
+	$('#toolbar_brush_list').empty();
+	if(brushes == undefined)
+	{
+		return;
+	}
+	for(var i = 0; i < brushes.length; i++)
+	{
+		var b = $('<div id="brush' + i + '"class="divBtn toolbar_brush"></div>');
+		$('#toolbar_brush_list').append(b);
+
+		b.on("click", brush_click);
+		b.on("contextmenu", brush_context);
+	}
+}
+
 function events_init()
 {
-	$('#toolbar_brush').on('click', brush_click);
-	$('#toolbar_brush').on('contextmenu', brush_context);
 	$('#brush_colour').on('input', brush_col_changed);
 }
 
