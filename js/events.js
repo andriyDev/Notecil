@@ -49,6 +49,25 @@ function brush_col_changed()
 	}
 }
 
+function brush_width_changed()
+{
+	var t = $(this);
+	var val = t.val();
+	$('#brush_width').val(val);
+	$('#brush_width_val').val(val);
+	if(selectedPaths)
+	{
+		for(var i = 0; i < selectedPaths.length; i++)
+		{
+			selectedPaths[i].attr('stroke-width', val);
+		}
+	}
+	if(brushes && selectedBrush != -1)
+	{
+		brushes[selectedBrush].width = val;
+	}
+}
+
 function regenBrushList()
 {
 	$('#toolbar_brush_list').empty();
@@ -69,5 +88,7 @@ function regenBrushList()
 function events_init()
 {
 	$('#brush_colour').on('input', brush_col_changed);
+	$('#brush_width').on('input', brush_width_changed);
+	$('#brush_width_val').on('input', brush_width_changed);
 }
 
