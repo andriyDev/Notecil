@@ -14,6 +14,7 @@ const path = require('path');
 
 function init()
 {
+	cfg_init();
 	docevents_init();
 	page_init();
 	events_init();
@@ -29,6 +30,8 @@ function onClose()
 {
 	// On window close, save the page.
 	savePage();
+	// Also, save the config.
+	saveConfigNow();
 }
 
 document.addEventListener("DOMContentLoaded", init);

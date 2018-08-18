@@ -10,12 +10,12 @@ var cfg;
 var cfgSaveInterval;
 
 // Does the config file exist?
-if(!fs.existsSync("config.cfg"))
+if(!fs.existsSync("window.cfg"))
 {
 	// If not we need to create one.
-	console.log("Missing config file!");
+	console.log("Missing window file!");
 	cfg = {window: {x: 0, y: 0, width: 800, height: 600, max: false}, configSave: 18000};
-	fs.writeFileSync("config.cfg", JSON.stringify(cfg));
+	fs.writeFileSync("window.cfg", JSON.stringify(cfg));
 }
 else
 {
@@ -38,7 +38,7 @@ function saveConfig()
 	cfg.window.max = m;
 
 	// Save the config file.
-	fs.writeFile("config.cfg", JSON.stringify(cfg), (err) => {
+	fs.writeFile("window.cfg", JSON.stringify(cfg), (err) => {
 		if (err) throw err;
 	});
 }
