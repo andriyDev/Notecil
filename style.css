@@ -280,7 +280,7 @@ html, body
 	flex-direction: column;
 }
 
-.brush_width_row
+.brush_row
 {
 	display: flex;
 	flex-direction: row;
@@ -295,6 +295,11 @@ html, body
 #brush_width_val
 {
 	width: 40px;
+}
+
+#brush_colour
+{
+	width: 100%;
 }
 
 .overlaybg
