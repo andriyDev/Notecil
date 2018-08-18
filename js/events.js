@@ -32,6 +32,10 @@ function brush_col_changed()
 	{
 		selectedPaths[i].attr('stroke', val);
 	}
+	if(brushes && selectedBrush != -1)
+	{
+		brushes[selectedBrush].colour = val;
+	}
 }
 
 function regenBrushList()

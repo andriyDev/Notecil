@@ -174,8 +174,10 @@ class BrushTool extends PointerTool
 		// Start the plot list.
 		this.plot = [{x: pt.x, y: pt.y}];
 		// Create the path.
+		var i = selectedBrush == -1 ? 0: selectedBrush;
+		var b = brushes && brushes.length > i ? brushes[i] : {colour: "#000000", width: 5};
 		// TODO: Make attr depend on the current "brush" (as in stroke-width and colour)
-		this.drawPath = doc_display.path(GetPlotStr(this.lot)).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
+		this.drawPath = doc_display.path(GetPlotStr(this.lot)).attr({fill: "none", stroke: b.colour, "stroke-width": b.width});
 	}
 
 	addPoint(pt)
