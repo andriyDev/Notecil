@@ -1,27 +1,14 @@
 
-const saveConfigTO_Time = 1000;
-
-var saveConfigTO;
-
 function getConfigData()
 {
-	
-}
-
-function saveConfigNow()
-{
-	fs.writeFile("config.cfg", JSON.stringify(getConfigData()), (err) => {
-		if (err) throw err;
-	});
+	return {brushes: brushes};
 }
 
 function saveConfig()
 {
-	if(saveConfigTO)
-	{
-		clearTimeout(saveConfigTO);
-	}
-	saveConfigTO = setTimeout(saveConfigNow, saveConfigTO_Time);
+	fs.writeFile("config.cfg", JSON.stringify(getConfigData()), (err) => {
+		if (err) throw err;
+	});
 }
 
 function setConfigData(data)

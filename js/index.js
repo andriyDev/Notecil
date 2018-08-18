@@ -31,7 +31,7 @@ function onClose()
 	// On window close, save the page.
 	savePage();
 	// Also, save the config.
-	saveConfigNow();
+	saveConfig();
 }
 
 document.addEventListener("DOMContentLoaded", init);

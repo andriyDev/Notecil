@@ -2,10 +2,10 @@
 function select_brush(brush_id)
 {
 	selectedBrush = brush_id;
-	if(selectedBrush == -1)
+	$('.toolbar_brush').removeClass("selected_brush");
+	if(selectedBrush != -1)
 	{
-		$('.toolbar_brush').removeClass("");
-		
+		$('#brush' + brush_id).addClass("selected_brush");
 	}
 }
 
