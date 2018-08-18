@@ -1,4 +1,9 @@
 
+function hide_context_menus()
+{
+	$('#brush_popup').addClass("hidden");
+}
+
 function select_brush(brush_id)
 {
 	selectedBrush = brush_id;
@@ -21,6 +26,7 @@ function brush_click(ev)
 
 function brush_context()
 {
+	hide_context_menus();
 	var t = $(this);
 	select_brush(parseInt(this.id.substring(5)));
 	$('#brush_popup').toggleClass('hidden').css({top: t.offset().top + t.height(), left: "" + t.offset().left});

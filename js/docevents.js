@@ -41,6 +41,7 @@ function handlePointerDown(ev)
 
 function onMouseDown(ev)
 {
+	hide_context_menus();
 	clearTool();
 
 	if(ev.button == 0) // LMB: Draw
@@ -65,6 +66,7 @@ function onMouseDown(ev)
 
 function onPenDown(ev)
 {
+	hide_context_menus();
 	clearTool();
 
 	if(ev.button == 0) // Main: Draw
@@ -198,6 +200,7 @@ function onPenExit(ev)
 
 function onTouchDown(ev)
 {
+	hide_context_menus();
 	// Make sure we weren't using a tool (like panning).
 	clearTool();
     // We need to figure out what kind of gesture is being done.
