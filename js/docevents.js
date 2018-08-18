@@ -1,6 +1,7 @@
 
 var touchState = 0;
 
+var targetTool = undefined;
 var currentTool = undefined;
 
 function clearTool()
@@ -45,7 +46,11 @@ function onMouseDown(ev)
 	if(ev.button == 0) // LMB: Draw
 	{
 		// currentTool = new BrushTool(ev.pointer);
-		currentTool = new SelectTool();
+		if(!targetTool)
+		{
+			select_brush(0);
+		}
+		currentTool = new targetTool(ev.pointer);
 	}
 	else if(ev.button == 2) // RMB: Pan
 	{

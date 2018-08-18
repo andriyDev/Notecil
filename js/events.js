@@ -6,6 +6,7 @@ function select_brush(brush_id)
 	if(selectedBrush != -1)
 	{
 		$('#brush' + brush_id).addClass("selected_brush");
+		targetTool = BrushTool;
 	}
 }
 

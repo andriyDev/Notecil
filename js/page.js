@@ -422,6 +422,48 @@ function isPathSelection(path)
 	return false;
 }
 
+function hextonum(hex)
+{
+	hex = hex.charCodeAt(0);
+	if(hex - 48 >= 0 && hex - 48 <= 9)
+	{
+		return hex - 48;
+	}
+	else if(hex - 65 >= 0 && hex - 65 <= 5)
+	{
+		return hex - 55;
+	}
+	else
+	{
+		return hex - 87;
+	}
+}
+
+function numtohex(num)
+{
+	// Big and little components of num.
+	var b = Math.floor(num / 16);
+	var l = num % 16;
+	if(b > 9)
+	{
+		b += 55;
+	}
+	else
+	{
+		b += 48;
+	}
+	if(l > 9)
+	{
+		l += 55;
+	}
+	else
+	{
+		l += 48;
+	}
+
+	return "" + String.fromCharCode(b) + String.fromCharCode(l);
+}
+
 function savePage()
 {
 	var paths = $('#doc').children().children().filter("path").toArray();
@@ -442,11 +484,24 @@ function savePage()
 		// Get the plot.
 		var path_data = extractPlotFromPath(SVG.adopt(paths[i]));
 		// Allocate the number of bytes required for the length and then bytes enough for the plot.
-		var buf = Buffer.alloc(4 + path_data.length * 8);
+		var buf = Buffer.alloc(11 + path_data.length * 8);
 		// Write the path length.
 		buf.writeUInt32BE(path_data.length, 0);
-		// TODO: Make this write the correct "brush"
-		var b = 4;
+		// Get both colour and width from the path.
+		var col = $(paths[i]).attr("stroke");
+		var width = $(paths[i]).attr("stroke-width");
+		// Convert col to an array of 8-bit rgb components.
+		col = [hextonum(col.substring(1, 2)) * 16 + hextonum(col.substring(2, 3)),
+			hextonum(col.substring(3, 4)) * 16 + hextonum(col.substring(4, 5)),
+			hextonum(col.substring(5, 6)) * 16 + hextonum(col.substring(6, 7))
+		];
+		// Write all 3 components.
+		buf.writeUInt8(col[0], 4);
+		buf.writeUInt8(col[1], 5);
+		buf.writeUInt8(col[2], 6);
+		// Write the width of the path.
+		buf.writeFloatBE(width, 7);
+		var b = 11;
 		for(var j = 0; j < path_data.length; j++)
 		{
 			// For each point in the plot, write both the x and y coordinates.
@@ -477,7 +532,15 @@ function reloadPage()
 		{
 			// Read the path len.
 			var path_len = data.readUInt32BE(b);
-			b += 4;
+			// Read in all 3 bytes of the colour.
+			var col = "#";
+			col += numtohex(data.readUInt8(b + 4));
+			col += numtohex(data.readUInt8(b + 5));
+			col += numtohex(data.readUInt8(b + 6));
+			// Read in the width of the path.
+			var width = data.readFloatBE(b + 7);
+			
+			b += 11;
 			// Allocate an array with <path_len> elements.
 			var plot = new Array(path_len);
 			for(var j = 0; j < path_len; j++)
@@ -485,8 +548,7 @@ function reloadPage()
 				plot[j] = {x: data.readFloatBE(b), y: data.readFloatBE(b + 4)};
 				b += 8;
 			}
-			// TODO: Make this load the correct "brush"
-			doc_display.path(GetPlotStr(plot)).attr({fill: "none", stroke: '#000000', "stroke-width": 5});
+			doc_display.path(GetPlotStr(plot)).attr({fill: "none", stroke: col, "stroke-width": width});
 		}
 	});
 }
