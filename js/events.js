@@ -4,13 +4,19 @@ function hide_context_menus()
 	$('#brush_popup').addClass("hidden");
 }
 
+function unhighlight_tool()
+{
+	$('.tool').removeClass("selected_tool");
+}
+
 function select_brush(brush_id)
 {
 	selectedBrush = brush_id;
-	$('.toolbar_brush').removeClass("selected_brush");
+	hide_context_menus();
+	unhighlight_tool();
 	if(selectedBrush != -1)
 	{
-		$('#brush' + brush_id).addClass("selected_brush");
+		$('#brush' + brush_id).addClass("selected_tool");
 		targetTool = BrushTool;
 	}
 }
@@ -74,17 +80,40 @@ function brush_width_changed()
 	}
 }
 
+function add_new_brush()
+{
+	console.log("+ Brush");
+	brushes.push({colour: '#000000', width: 5});
+	regenBrushList();
+}
+
+function selectToolClicked()
+{
+	console.log("Select");
+	select_brush(-1);
+	$('#tool_select').addClass('selected_tool');
+	targetTool = SelectTool;
+}
+
+function eraseToolClicked()
+{
+	console.log("Erase");
+	select_brush(-1);
+	$('#tool_erase').addClass('selected_tool');
+	// TODO: Select erase tool
+}
+
 function regenBrushList()
 {
-	$('#toolbar_brush_list').empty();
+	$('#tool_brush_list').empty();
 	if(brushes == undefined)
 	{
 		return;
 	}
 	for(var i = 0; i < brushes.length; i++)
 	{
-		var b = $('<div id="brush' + i + '"class="divBtn toolbar_brush"></div>');
-		$('#toolbar_brush_list').append(b);
+		var b = $('<div id="brush' + i + '" class="divBtn tool' + (selectedBrush == i ? ' selected_tool' : '') + '"></div>');
+		$('#tool_brush_list').append(b);
 
 		b.on("click", brush_click);
 		b.on("contextmenu", brush_context);
@@ -96,5 +125,9 @@ function events_init()
 	$('#brush_colour').on('input', brush_col_changed);
 	$('#brush_width').on('input', brush_width_changed);
 	$('#brush_width_val').on('input', brush_width_changed);
+
+	$('#tool_brush_add').on('click', add_new_brush);
+	$('#tool_select').on('click', selectToolClicked);
+	$('#tool_erase').on('click', eraseToolClicked);
 }
 
