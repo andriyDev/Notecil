@@ -414,7 +414,7 @@ function isPathSelection(path)
 	}
 	for(var i = 0; i < selectionPaths.length; i++)
 	{
-		if(path === selectionPaths[i])
+		if(path == selectionPaths[i].node)
 		{
 			return true;
 		}
@@ -470,10 +470,9 @@ function savePage()
 
 	// We start with a single buffer that will hold the number of paths.
 	var buffers = [Buffer.alloc(4)];
-	// Write the number of paths.
-	buffers[0].writeUInt32BE(paths.length, 0);
 	// Keep track of how many bytes are allocated in total.
 	var tl = 4;
+	var pathsAdded = 0;
 	for(var i = 0; i < paths.length; i++)
 	{
 		// Make sure the path is not part of the selection ui.
@@ -481,6 +480,8 @@ function savePage()
 		{
 			continue;
 		}
+		// Increment the number of paths in the file.
+		pathsAdded++;
 		// Get the plot.
 		var path_data = extractPlotFromPath(SVG.adopt(paths[i]));
 		// Allocate the number of bytes required for the length and then bytes enough for the plot.
@@ -514,7 +515,9 @@ function savePage()
 		// Add to the "total length"
 		tl += b;
 	}
-
+	// Write the number of paths.
+	buffers[0].writeUInt32BE(pathsAdded, 0);
+	// Set the buffers to the concatenated buffers.
 	buffers = Buffer.concat(buffers, tl);
 	// Write the buffers once they are concatenated.
 	fs.writeFileSync(openedPage, buffers);
