@@ -174,7 +174,6 @@ function ExportPage()
 				}
 				b += 8;
 			}
-			// TODO: Make this load the correct "brush"
 			file_data += '<path d="' + GetPlotStr(plot) + '" fill="none" stroke="#000000" stroke-width="5"></path>';
 		}
 		// Adjust the bounds so its not too suffocating

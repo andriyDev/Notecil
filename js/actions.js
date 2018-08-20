@@ -11,6 +11,7 @@ var initialPinchBox;
 
 var selectedPaths;
 var selectionPaths;
+var boundsRect;
 var bounds;
 
 var selectedBrush = -1;
@@ -266,6 +267,12 @@ class SelectTool extends PointerTool
 		{
 			selectedPaths = undefined;
 		}
+		if(boundsRect)
+		{
+			boundsRect.remove();
+			boundsRect = undefined;
+		}
+
 		selectionPaths = [];
 		selectedPaths = [];
 		bounds = {};
@@ -326,9 +333,21 @@ class SelectTool extends PointerTool
 						selectionPaths.push(select_path);
 						// Add the path to the selection.
 						selectedPaths.push(paths[i]);
-						if(bounds)
+						// Adjust the bounding box to include the stroke width
+						// We divide by two since stroke-width means the "diameter" of the line.
+						var stroke_width = paths[i].attr("stroke-width") / 2;
+						bbox.x -= stroke_width;
+						bbox.y -= stroke_width;
+						bbox.width += 2 * stroke_width;
+						bbox.height += 2 * stroke_width;
+						bbox.w += 2 * stroke_width;
+						bbox.h += 2 * stroke_width;
+						bbox.x2 += stroke_width;
+						bbox.y2 += stroke_width;
+
+						if(bounds != undefined)
 						{
-							bounds.merge(bbox);
+							bounds = bounds.merge(bbox);
 						}
 						else
 						{
@@ -339,6 +358,11 @@ class SelectTool extends PointerTool
 					}
 				}
 			}
+		}
+		if(bounds != undefined)
+		{
+			boundsRect = doc_display.rect(bounds.width, bounds.height);
+			boundsRect.attr({x: bounds.x, y: bounds.y, fill: "none", stroke: "#000000", "stroke-width": "0.5%"});
 		}
 	}
 }
