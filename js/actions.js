@@ -11,6 +11,7 @@ var initialPinchBox;
 
 var selectedPaths;
 var selectionPaths;
+var bounds;
 
 var selectedBrush = -1;
 var brushes = [];
@@ -213,7 +214,7 @@ function GetWindingNumber(polygon, point)
 		// Get position relative to the point for each edge point.
 		var diff = (polygon[i].y - point.y);
 		var diff_next = (polygon[i + 1].y - point.y);
-		
+
 		// If one point is above and one is below (one positive, one negative),
 		// or a point is intersected (equals 0), then this will effect the winding number.
 		if(diff * diff_next <= 0)
@@ -242,7 +243,7 @@ class SelectTool extends PointerTool
 	{
 		super();
 	}
-	
+
 	startPlot(pt)
 	{
 		// Start the plot list.
@@ -267,8 +268,9 @@ class SelectTool extends PointerTool
 		}
 		selectionPaths = [];
 		selectedPaths = [];
+		bounds = {};
 	}
-	
+
 	addPoint(pt)
 	{
 		// Add the point.
@@ -292,6 +294,7 @@ class SelectTool extends PointerTool
 		// Get rid of the selection ghost.
 		this.drawPath.remove();
 
+		bounds = undefined;
 		var paths = doc_display.children();
 		for(var i = 0; i < paths.length; i++)
 		{
@@ -323,6 +326,14 @@ class SelectTool extends PointerTool
 						selectionPaths.push(select_path);
 						// Add the path to the selection.
 						selectedPaths.push(paths[i]);
+						if(bounds)
+						{
+							bounds.merge(bbox);
+						}
+						else
+						{
+							bounds = bbox;
+						}
 						// We don't need to check any more points.
 						break;
 					}

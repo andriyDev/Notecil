@@ -79,7 +79,7 @@ function onPenDown(ev)
 	}
 	else if(ev.button == 2) // Btn2: Select
 	{
-		// TODO: Select
+		currentTool = new SelectTool();
 	}
 
 	if(currentTool)
