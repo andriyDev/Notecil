@@ -29,6 +29,10 @@ function handlePointerDown(ev)
 	{
 		return;
 	}
+	else if((currentTool = new MoveSelectionTool()).startUse({x: ev.clientX, y: ev.clientY}))
+	{
+		return;
+	}
 	else
 	{
 		currentTool = undefined;
@@ -221,6 +225,10 @@ function onTouchDown(ev)
         // If there is only one touch on the screen, that means we need to start panning/manipulating the selection.
 		currentTool = new ScaleSelectionTool();
 		if(currentTool.startUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY}))
+		{
+			return;
+		}
+		else if((currentTool = new MoveSelectionTool()).startUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY}))
 		{
 			return;
 		}

@@ -539,6 +539,74 @@ class ScaleSelectionTool extends Tool
 ScaleSelectionTool.maxCornerOffset = 5;
 ScaleSelectionTool.maxNormalOffset = 5;
 
+class MoveSelectionTool extends Tool
+{
+	constructor()
+	{
+		super();
+	}
+
+	startUse(pt)
+	{
+		super.startUse(pt);
+		if(boundsRect)
+		{
+			// Get the dom position of the bounds
+			var bbox = boundsRect.rbox();
+			// Compute the difference between each edge.
+			var diff_left = pt.x - bbox.x;
+			var diff_top = pt.y - bbox.y;
+			var diff_right = pt.x - bbox.x2;
+			var diff_bot = pt.y - bbox.y2;
+			// Are we inside the bounds?
+			if(diff_left >= 0 && diff_left >= 0 && diff_bot < 0 && diff_right < 0)
+			{
+				this.startPos = doc_display.point(pt.x, pt.y);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	moveUse(pt)
+	{
+		super.moveUse(pt);
+		pt = doc_display.point(pt.x, pt.y);
+		var delta = {x: pt.x - this.startPos.x, y: pt.y - this.startPos.y};
+
+		var bbox = boundsRect.bbox();
+		for(var i = 0; i < selectedPaths.length; i++)
+		{
+			for(var p = 0; p < selectedPlots[i].length; p++)
+			{
+				var plotpt = selectedPlots[i][p];
+				// Add the delta.
+				plotpt.x += delta.x;
+				plotpt.y += delta.y;
+			}
+			var plotStr = GetPlotStr(selectedPlots[i])
+			selectedPaths[i].plot(plotStr);
+			selectionPaths[i].plot(plotStr);
+		}
+
+		boundsRect.attr({x: bbox.x + delta.x, y: bbox.y + delta.y});
+
+		this.startPos = pt;
+	}
+
+	stopUse()
+	{
+		super.stopUse();
+	}
+}
+
 // Given a path that was generated from this code, we can extract the points used to create it.
 // Use this function to do so.
 function extractPlotFromPath(path)
