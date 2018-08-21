@@ -83,6 +83,10 @@ function brush_width_changed()
 function add_new_brush()
 {
 	console.log("+ Brush");
+	if(brushes == undefined)
+	{
+		brushes = [];
+	}
 	brushes.push({colour: '#000000', width: 5});
 	regenBrushList();
 }
@@ -130,4 +134,3 @@ function events_init()
 	$('#tool_select').on('click', selectToolClicked);
 	$('#tool_erase').on('click', eraseToolClicked);
 }
-
