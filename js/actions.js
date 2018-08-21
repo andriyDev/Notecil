@@ -10,9 +10,9 @@ var initialPinchPoints;
 var initialPinchBox;
 
 var selectedPaths;
+var selectedPlots;
 var selectionPaths;
 var boundsRect;
-var bounds;
 
 var selectedBrush = -1;
 var brushes = [];
@@ -275,7 +275,7 @@ class SelectTool extends PointerTool
 
 		selectionPaths = [];
 		selectedPaths = [];
-		bounds = {};
+		selectedPlots = [];
 	}
 
 	addPoint(pt)
@@ -301,7 +301,7 @@ class SelectTool extends PointerTool
 		// Get rid of the selection ghost.
 		this.drawPath.remove();
 
-		bounds = undefined;
+		var bounds = undefined;
 		var paths = doc_display.children();
 		for(var i = 0; i < paths.length; i++)
 		{
@@ -333,6 +333,7 @@ class SelectTool extends PointerTool
 						selectionPaths.push(select_path);
 						// Add the path to the selection.
 						selectedPaths.push(paths[i]);
+						selectedPlots.push(pathPlot);
 						// Adjust the bounding box to include the stroke width
 						// We divide by two since stroke-width means the "diameter" of the line.
 						var stroke_width = paths[i].attr("stroke-width") / 2;
@@ -499,7 +500,27 @@ class ScaleSelectionTool extends Tool
 				delta.y = 0;
 				break;
 		}
-		// TODO: Make the drag apply to the bounding box and selected elements.
+		var bbox = boundsRect.bbox();
+		for(var i = 0; i < selectedPaths.length; i++)
+		{
+			for(var p = 0; p < selectedPlots[i].length; p++)
+			{
+				var pt = selectedPlots[i][p];
+				// Make it relative to the bounding box.
+				pt.x -= bbox.cx;
+				pt.y -= bbox.cy;
+				// Scale by the amount we will stretch the box.
+				pt.x *= (bbox.w + delta.x) / bbox.w;
+				pt.y *= (bbox.h + delta.y) / bbox.h;
+				// Make it back relative to the new scaled box.
+				pt.x += (bbox.x + tl_diff.x) + (bbox.w + delta.x) * 0.5;
+				pt.y += (bbox.y + tl_diff.y) + (bbox.h + delta.y) * 0.5;
+			}
+			selectedPaths[i].plot(GetPlotStr(selectedPlots[i]));
+		}
+
+		boundsRect.attr({width: (bbox.w + delta.x), height: (bbox.h + delta.y),
+			x: bbox.x + tl_diff.x, y: bbox.y + tl_diff.y});
 	}
 
 	stopUse()
