@@ -446,6 +446,8 @@ class ScaleSelectionTool extends Tool
 			}
 			// If we reached here that must mean that one of the ifs passed,
 			// so we will be scaling.
+			// Assign the start position.
+			this.startPos = doc_display.point(pt.x, pt.y);
 			return true;
 		}
 		else
@@ -457,6 +459,47 @@ class ScaleSelectionTool extends Tool
 	moveUse(pt)
 	{
 		super.moveUse(pt);
+		pt = doc_display.point(pt.x, pt.y);
+		var delta = {x: pt.x - this.startPos.x, y: pt.y - this.startPos.y};
+		var tl_diff = {x: 0, y: 0};
+
+		// Find out how the width/height should change, and how the top left should change
+		// based on the direction of dragging.
+		switch(this.dir)
+		{
+			case 0:
+				tl_diff.x = delta.x;
+				tl_diff.y = delta.y;
+				delta.x *= -1;
+				delta.y *= -1;
+				break;
+			case 2:
+				tl_diff.y = delta.y;
+				delta.y *= -1;
+				break;
+			case 4:
+				break;
+			case 6:
+				tl_diff.x = delta.x;
+				delta.x *= -1;
+				break;
+			case 1:
+				tl_diff.y = delta.y;
+				delta.y *= -1;
+				delta.x = 0;
+			case 3:
+				delta.y = 0;
+				break;
+			case 5:
+				delta.x = 0;
+				break;
+			case 7:
+				tl_diff.x = delta.x;
+				delta.x *= -1;
+				delta.y = 0;
+				break;
+		}
+		// TODO: Make the drag apply to the bounding box and selected elements.
 	}
 
 	stopUse()
