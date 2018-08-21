@@ -372,6 +372,104 @@ class SelectTool extends PointerTool
 SelectTool.percentToSelect = 0.5;
 SelectTool.selectWidth = 2;
 
+class ScaleSelectionTool extends Tool
+{
+	constructor()
+	{
+		super();
+	}
+
+	startUse(pt)
+	{
+		super.startUse(pt);
+		if(boundsRect)
+		{
+			// Get the dom position of the bounds
+			var bbox = boundsRect.rbox();
+			// Compute the difference between each edge.
+			var diff_left = pt.x - bbox.x;
+			var diff_top = pt.y - bbox.y;
+			var diff_right = pt.x - bbox.x2;
+			var diff_bot = pt.y - bbox.y2;
+			// If we are within the corner distance for the top-left
+			if(Math.abs(diff_left) < ScaleSelectionTool.maxCornerOffset
+				&& Math.abs(diff_top) < ScaleSelectionTool.maxCornerOffset)
+			{
+				this.dir = 0;
+			}
+			// If we are within the corner distance for the top-right
+			else if(Math.abs(diff_right) < ScaleSelectionTool.maxCornerOffset
+				&& Math.abs(diff_top) < ScaleSelectionTool.maxCornerOffset)
+			{
+				this.dir = 2;
+			}
+			// If we are within the corner distance for the bot-right
+			else if(Math.abs(diff_right) < ScaleSelectionTool.maxCornerOffset
+				&& Math.abs(diff_bot) < ScaleSelectionTool.maxCornerOffset)
+			{
+				this.dir = 4;
+			}
+			// If we are within the corner distance for the bot-left
+			else if(Math.abs(diff_left) < ScaleSelectionTool.maxCornerOffset
+				&& Math.abs(diff_bot) < ScaleSelectionTool.maxCornerOffset)
+			{
+				this.dir = 6;
+			}
+			// If we are within the edge distance for the top edge
+			else if(Math.abs(diff_top) < ScaleSelectionTool.maxNormalOffset
+				&& diff_left > 0 && diff_right > 0)
+			{
+				this.dir = 1;
+			}
+			// If we are within the edge distance for the right edge
+			else if(Math.abs(diff_right) < ScaleSelectionTool.maxNormalOffset
+				&& diff_top > 0 && diff_bot > 0)
+			{
+				this.dir = 3;
+			}
+			// If we are within the edge distance for the bottom edge
+			else if(Math.abs(diff_bot) < ScaleSelectionTool.maxNormalOffset
+				&& diff_left > 0 && diff_right > 0)
+			{
+				this.dir = 5;
+			}
+			// If we are within the edge distance for the left edge
+			else if(Math.abs(diff_left) < ScaleSelectionTool.maxNormalOffset
+				&& diff_top > 0 && diff_bot > 0)
+			{
+				this.dir = 7;
+			}
+			// If we didn't hit any edge or corner.
+			else
+			{
+				return false;
+			}
+			// If we reached here that must mean that one of the ifs passed,
+			// so we will be scaling.
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	moveUse(pt)
+	{
+		super.moveUse(pt);
+	}
+
+	stopUse()
+	{
+		super.stopUse();
+	}
+}
+
+// === Scale Selection Tool Constants ===
+
+ScaleSelectionTool.maxCornerOffset = 5;
+ScaleSelectionTool.maxNormalOffset = 5;
+
 // Given a path that was generated from this code, we can extract the points used to create it.
 // Use this function to do so.
 function extractPlotFromPath(path)
@@ -461,7 +559,20 @@ function GetPlotStr(plot)
 	return str;
 }
 
+function startSelectionMove(pt)
+{
+	pt = doc_display.point(pt.x, pt.y);
+}
 
+function moveSelectionMove(pt)
+{
+	pt = doc_display.point(pt.x, pt.y);
+}
+
+function endSelectionMove()
+{
+
+}
 
 function startPinch(pt1, pt2)
 {
