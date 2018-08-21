@@ -16,6 +16,23 @@ function clearTool()
 // Event handler for when a pointer is down.
 function handlePointerDown(ev)
 {
+	// Strange, for some reason the touch events act differently than the associated pointer events.
+	// I'm moving the touch events into their own event handlers.
+	if(ev.pointerType == "touch")
+	{
+		return;
+	}
+	hide_context_menus();
+	clearTool();
+	currentTool = new ScaleSelectionTool();
+	if(currentTool.startUse({x: ev.clientX, y: ev.clientY}))
+	{
+		return;
+	}
+	else
+	{
+		currentTool = undefined;
+	}
 	// Based on the pointer type, call the appropriate function.
 	switch(ev.pointerType)
 	{
@@ -24,10 +41,6 @@ function handlePointerDown(ev)
 			break;
 		case "pen":
 			onPenDown(ev);
-			break;
-		case "touch":
-			// Strange, for some reason the touch events act differently than the associated pointer events.
-			// I'm moving the touch events into their own event handlers.
 			break;
 		default:
 			if(!printedPointerNotSupportedMsg)
@@ -41,9 +54,6 @@ function handlePointerDown(ev)
 
 function onMouseDown(ev)
 {
-	hide_context_menus();
-	clearTool();
-
 	if(ev.button == 0) // LMB: Draw
 	{
 		// currentTool = new BrushTool(ev.pointer);
@@ -66,9 +76,6 @@ function onMouseDown(ev)
 
 function onPenDown(ev)
 {
-	hide_context_menus();
-	clearTool();
-
 	if(ev.button == 0) // Main: Draw
 	{
 		currentTool = new BrushTool(ev.pointer);
@@ -91,6 +98,12 @@ function onPenDown(ev)
 // Event handler for when a pointer is up.
 function handlePointerUp(ev)
 {
+	// Strange, for some reason the touch events act differently than the associated pointer events.
+	// I'm moving the touch events into their own event handlers.
+	if(ev.pointerType == "touch")
+	{
+		return;
+	}
 	switch(ev.pointerType)
 	{
 		case "mouse":
@@ -98,10 +111,6 @@ function handlePointerUp(ev)
 			break;
 		case "pen":
 			onPenUp(ev);
-			break;
-		case "touch":
-			// Strange, for some reason the touch events act differently than the associated pointer events.
-			// I'm moving the touch events into their own event handlers.
 			break;
 		default:
 			if(!printedPointerNotSupportedMsg)
@@ -126,6 +135,12 @@ function onPenUp(ev)
 // Event handler for when a pointer has moved.
 function handlePointerMove(ev)
 {
+	// Strange, for some reason the touch events act differently than the associated pointer events.
+	// I'm moving the touch events into their own event handlers.
+	if(ev.pointerType == "touch")
+	{
+		return;
+	}
 	switch(ev.pointerType)
 	{
 		case "mouse":
@@ -133,10 +148,6 @@ function handlePointerMove(ev)
 			break;
 		case "pen":
 			onPenMove(ev);
-			break;
-		case "touch":
-			// Strange, for some reason the touch events act differently than the associated pointer events.
-			// I'm moving the touch events into their own event handlers.
 			break;
 		default:
 			if(!printedPointerNotSupportedMsg)
@@ -207,7 +218,17 @@ function onTouchDown(ev)
     if(ev.targetTouches.length == 1)
     {
         touchState = 1;
-        // If there is only one touch on the screen, that means we need to start panning.
+        // If there is only one touch on the screen, that means we need to start panning/manipulating the selection.
+		currentTool = new ScaleSelectionTool();
+		if(currentTool.startUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY}))
+		{
+			return;
+		}
+		else
+		{
+			currentTool = undefined;
+		}
+
 		currentTool = new PanTool();
 		currentTool.startUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY});
     }
@@ -321,4 +342,3 @@ function docevents_init()
 	// Assign an arbitrary viewbox.
 	doc_display.viewbox(0,0,1000,1000);
 }
-

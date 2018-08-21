@@ -418,25 +418,25 @@ class ScaleSelectionTool extends Tool
 			}
 			// If we are within the edge distance for the top edge
 			else if(Math.abs(diff_top) < ScaleSelectionTool.maxNormalOffset
-				&& diff_left > 0 && diff_right > 0)
+				&& diff_left > 0 && diff_right < 0)
 			{
 				this.dir = 1;
 			}
 			// If we are within the edge distance for the right edge
 			else if(Math.abs(diff_right) < ScaleSelectionTool.maxNormalOffset
-				&& diff_top > 0 && diff_bot > 0)
+				&& diff_top > 0 && diff_bot < 0)
 			{
 				this.dir = 3;
 			}
 			// If we are within the edge distance for the bottom edge
 			else if(Math.abs(diff_bot) < ScaleSelectionTool.maxNormalOffset
-				&& diff_left > 0 && diff_right > 0)
+				&& diff_left > 0 && diff_right < 0)
 			{
 				this.dir = 5;
 			}
 			// If we are within the edge distance for the left edge
 			else if(Math.abs(diff_left) < ScaleSelectionTool.maxNormalOffset
-				&& diff_top > 0 && diff_bot > 0)
+				&& diff_top > 0 && diff_bot < 0)
 			{
 				this.dir = 7;
 			}
@@ -486,8 +486,9 @@ class ScaleSelectionTool extends Tool
 				break;
 			case 1:
 				tl_diff.y = delta.y;
-				delta.y *= -1;
 				delta.x = 0;
+				delta.y *= -1;
+				break;
 			case 3:
 				delta.y = 0;
 				break;
@@ -505,22 +506,26 @@ class ScaleSelectionTool extends Tool
 		{
 			for(var p = 0; p < selectedPlots[i].length; p++)
 			{
-				var pt = selectedPlots[i][p];
+				var plotpt = selectedPlots[i][p];
 				// Make it relative to the bounding box.
-				pt.x -= bbox.cx;
-				pt.y -= bbox.cy;
+				plotpt.x -= bbox.cx;
+				plotpt.y -= bbox.cy;
 				// Scale by the amount we will stretch the box.
-				pt.x *= (bbox.w + delta.x) / bbox.w;
-				pt.y *= (bbox.h + delta.y) / bbox.h;
+				plotpt.x *= (bbox.w + delta.x) / bbox.w;
+				plotpt.y *= (bbox.h + delta.y) / bbox.h;
 				// Make it back relative to the new scaled box.
-				pt.x += (bbox.x + tl_diff.x) + (bbox.w + delta.x) * 0.5;
-				pt.y += (bbox.y + tl_diff.y) + (bbox.h + delta.y) * 0.5;
+				plotpt.x += (bbox.x + tl_diff.x) + (bbox.w + delta.x) * 0.5;
+				plotpt.y += (bbox.y + tl_diff.y) + (bbox.h + delta.y) * 0.5;
 			}
-			selectedPaths[i].plot(GetPlotStr(selectedPlots[i]));
+			var plotStr = GetPlotStr(selectedPlots[i])
+			selectedPaths[i].plot(plotStr);
+			selectionPaths[i].plot(plotStr);
 		}
 
 		boundsRect.attr({width: (bbox.w + delta.x), height: (bbox.h + delta.y),
 			x: bbox.x + tl_diff.x, y: bbox.y + tl_diff.y});
+
+		this.startPos = pt;
 	}
 
 	stopUse()
