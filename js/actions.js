@@ -456,7 +456,6 @@ class EraseTool extends PointerTool
 							&& intersectsWithinBounds(line_bounds, intersect))
 					if(eraseMode == ERASE_STROKE)
 					{
-						console.log("Hit here");
 						paths[i].remove();
 						break;
 					}
