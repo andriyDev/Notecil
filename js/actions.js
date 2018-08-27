@@ -398,13 +398,10 @@ class EraseTool extends PointerTool
 		{
 			var bbox = paths[i].bbox();
 			// If the bounding boxes do not intersect, then don't bother calculating it.
-			/*
-			if(min.x > bbox.x2 || min.y > bbox.y2 ||
-				max.x < bbox.x || max.y < bbox.y)
+			if(min.x >= bbox.x2 || min.y >= bbox.y2 || max.x < bbox.x || max.y < bbox.y)
 			{
-				console.log("Failed here");
 				continue;
-			}*/
+			}
 			var a = this.lastPt;
 			var da = {x: pt.x - this.lastPt.x, y: pt.y - this.lastPt.y};
 			// TODO: Somehow make this not run incredibly slowly.
