@@ -377,6 +377,42 @@ class SelectTool extends PointerTool
 SelectTool.percentToSelect = 0.5;
 SelectTool.selectWidth = 2;
 
+function extractBounds(a, b)
+{
+	return {x: Math.min(a.x, b.x), y: Math.min(a.y, b.y),
+			x2: Math.max(a.x, b.x), y2: Math.max(a.y, b.y)};
+}
+
+function doBoundsIntersect(a, b)
+{
+	return a.x < b.x2 && a.y < b.y2 && a.x2 >= b.x && a.y2 >= b.y;
+}
+
+function getLineVals(a, b)
+{
+	var delta = {x: b.x - a.x, y: b.y - a.y};
+	var slope = delta.x == 0 ? Infinity : delta.y / delta.x;
+	var b = slope == Infinity ? a.x : a.y - slope * a.x;
+	return {m: slope, b: b};
+}
+
+function computeIntersectionOfLines(l1, l2)
+{
+	if(l1.m == l2.m)
+	{
+		return;
+	}
+	var x = (l2.b - l1.b) / (l1.m - l2.m);
+	var y = l1.m * x + l1.b;
+	return {x: x, y: y};
+}
+
+// This assumes pt was generated as an intersection point.
+function intersectsWithinBounds(bbox, pt)
+{
+	return pt.x >= bbox.x && pt.x < bbox.x2;
+}
+
 class EraseTool extends PointerTool
 {
 	constructor(pointer)
@@ -391,45 +427,43 @@ class EraseTool extends PointerTool
 
 	addPoint(pt)
 	{
-		var min = {x: Math.min(pt.x, this.lastPt.x), y: Math.min(pt.y, this.lastPt.y)};
-		var max = {x: Math.max(pt.x, this.lastPt.x), y: Math.max(pt.y, this.lastPt.y)};
+		var erase_bounds = extractBounds(pt, this.lastPt);
+		var eraseLine = getLineVals(this.lastPt, pt);
 		var paths = doc_display.children();
 		for(var i = 0; i < paths.length; i++)
 		{
 			var bbox = paths[i].bbox();
 			// If the bounding boxes do not intersect, then don't bother calculating it.
-			if(min.x >= bbox.x2 || min.y >= bbox.y2 || max.x < bbox.x || max.y < bbox.y)
+			if(!doBoundsIntersect(erase_bounds, bbox))
 			{
 				continue;
 			}
-			var a = this.lastPt;
-			var da = {x: pt.x - this.lastPt.x, y: pt.y - this.lastPt.y};
 			// TODO: Somehow make this not run incredibly slowly.
 			var plot = extractPlotFromPath(paths[i]);
 			for(var j = 0; j < plot.length - 1; j++)
 			{
-				// We will assume that linear is fine for large enough scales and fine enough points.
-				var x = plot[j];
-				var dx = {x: plot[j + 1].x - plot[j].x, y: plot[j + 1].y - plot[j].y};
-				var t = (x.x - a.x - da.x * ((x.y - a.y) / da.y)) / ((dx.y * da.x / da.y) - dx.x);
-				// We are ignoring the case where either line is directly vertical.
-				if(t > 0)
+				// Test bounds since that can exclude many points.
+				var line_bounds = extractBounds(plot[j], plot[j + 1]);
+				if(!doBoundsIntersect(erase_bounds, line_bounds))
 				{
-					var s = (x.y - a.y + t * dx.y) / da.b;
-					if(s > 0)
-					{
-						if(eraseMode == ERASE_STROKE)
-						{
-							console.log("Hit here");
-							paths[i].remove();
-							break;
-						}
-						else
-						{
-							// TODO: Make the line erase tool work.
-						}
-					}
+					// Skip line if bounds do not intersect erase bounds.
+					continue;
 				}
+				// We will assume that linear is fine for large enough scales and fine enough points.
+				var line = getLineVals(plot[j], plot[j + 1]);
+				var intersect = computeIntersectionOfLines(eraseLine, line);
+				if(intersect && intersectsWithinBounds(erase_bounds, intersect)
+							&& intersectsWithinBounds(line_bounds, intersect))
+					if(eraseMode == ERASE_STROKE)
+					{
+						console.log("Hit here");
+						paths[i].remove();
+						break;
+					}
+					else
+					{
+						// TODO: Make the line erase tool work.
+					}
 			}
 		}
 		this.lastPt = pt;
