@@ -17,6 +17,10 @@ var boundsRect;
 var selectedBrush = -1;
 var brushes = [];
 
+const ERASE_STROKE = 0;
+const ERASE_LINE = 1;
+var eraseMode = ERASE_STROKE;
+
 // A class to generalize what a tool must have.
 class Tool
 {
@@ -240,9 +244,9 @@ function GetWindingNumber(polygon, point)
 
 class SelectTool extends PointerTool
 {
-	constructor()
+	constructor(pointer)
 	{
-		super();
+		super(pointer);
 	}
 
 	startPlot(pt)
@@ -372,6 +376,73 @@ class SelectTool extends PointerTool
 
 SelectTool.percentToSelect = 0.5;
 SelectTool.selectWidth = 2;
+
+class EraseTool extends PointerTool
+{
+	constructor(pointer)
+	{
+		super(pointer);
+	}
+
+	startPlot(pt)
+	{
+		this.lastPt = pt;
+	}
+
+	addPoint(pt)
+	{
+		var min = {x: Math.min(pt.x, this.lastPt.x), y: Math.min(pt.y, this.lastPt.y)};
+		var max = {x: Math.max(pt.x, this.lastPt.x), y: Math.max(pt.y, this.lastPt.y)};
+		var paths = doc_display.children();
+		for(var i = 0; i < paths.length; i++)
+		{
+			var bbox = paths[i].bbox();
+			// If the bounding boxes do not intersect, then don't bother calculating it.
+			/*
+			if(min.x > bbox.x2 || min.y > bbox.y2 ||
+				max.x < bbox.x || max.y < bbox.y)
+			{
+				console.log("Failed here");
+				continue;
+			}*/
+			var a = this.lastPt;
+			var da = {x: pt.x - this.lastPt.x, y: pt.y - this.lastPt.y};
+			// TODO: Somehow make this not run incredibly slowly.
+			var plot = extractPlotFromPath(paths[i]);
+			for(var j = 0; j < plot.length - 1; j++)
+			{
+				// We will assume that linear is fine for large enough scales and fine enough points.
+				var x = plot[j];
+				var dx = {x: plot[j + 1].x - plot[j].x, y: plot[j + 1].y - plot[j].y};
+				var t = (x.x - a.x - da.x * ((x.y - a.y) / da.y)) / ((dx.y * da.x / da.y) - dx.x);
+				// We are ignoring the case where either line is directly vertical.
+				if(t > 0)
+				{
+					var s = (x.y - a.y + t * dx.y) / da.b;
+					if(s > 0)
+					{
+						if(eraseMode == ERASE_STROKE)
+						{
+							console.log("Hit here");
+							paths[i].remove();
+							break;
+						}
+						else
+						{
+							// TODO: Make the line erase tool work.
+						}
+					}
+				}
+			}
+		}
+		this.lastPt = pt;
+	}
+
+	endPlot(pt)
+	{
+		this.addPoint(pt);
+	}
+}
 
 class ScaleSelectionTool extends Tool
 {

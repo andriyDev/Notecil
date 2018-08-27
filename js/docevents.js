@@ -86,11 +86,11 @@ function onPenDown(ev)
 	}
 	else if(ev.button == 5) // Btn1: Erase
 	{
-		// TODO: Erase
+		currentTool = new EraseTool(ev.pointer);
 	}
 	else if(ev.button == 2) // Btn2: Select
 	{
-		currentTool = new SelectTool();
+		currentTool = new SelectTool(ev.pointer);
 	}
 
 	if(currentTool)

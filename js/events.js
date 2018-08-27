@@ -101,10 +101,9 @@ function selectToolClicked()
 
 function eraseToolClicked()
 {
-	console.log("Erase");
 	select_brush(-1);
 	$('#tool_erase').addClass('selected_tool');
-	// TODO: Select erase tool
+	targetTool = EraseTool;
 }
 
 function regenBrushList()
