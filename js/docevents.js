@@ -409,8 +409,7 @@ function zoom(ev)
 
 function docevents_init()
 {
-	// Create the svg view.
-	doc_display = SVG('doc');
+	return;
 	// Add the pointer event listeners.
 	doc_display.on("pointerdown", handlePointerDown, window);
 	doc_display.on("pointerup", handlePointerUp, window);

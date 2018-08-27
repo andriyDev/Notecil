@@ -331,7 +331,7 @@ function selectSection(i)
 		// Set the selection and add the correct class.
 		selectedSection = i;
 		$('#section' + selectedSection).addClass('selected_section');
-		
+
 		readSelectedSection(() => { regenPages(); });
 	}
 }
@@ -382,7 +382,7 @@ function openPage(ind)
 		openedPageInd = undefined;
 		openedPage = undefined;
 		UpdateWindowTitle();
-		
+
 		$('#doc_hider').addClass('hidden');
 		$('#no_page').removeClass('hidden');
 
@@ -398,6 +398,9 @@ function openPage(ind)
 
 		$('#doc_hider').removeClass('hidden');
 		$('#no_page').addClass('hidden');
+
+		// Ensure the canvas is sized to the doc now that it is visible.
+		resize_canvas();
 
 		reloadPage();
 
@@ -541,7 +544,7 @@ function reloadPage()
 			col += numtohex(data.readUInt8(b + 6));
 			// Read in the width of the path.
 			var width = data.readFloatBE(b + 7);
-			
+
 			b += 11;
 			// Allocate an array with <path_len> elements.
 			var plot = new Array(path_len);

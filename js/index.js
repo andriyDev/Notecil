@@ -15,6 +15,7 @@ const path = require('path');
 function init()
 {
 	cfg_init();
+	renderer_init();
 	docevents_init();
 	page_init();
 	events_init();
