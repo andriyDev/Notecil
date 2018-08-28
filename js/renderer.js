@@ -26,6 +26,35 @@ function ConvertToPagePoint(clientPt)
 function resize_canvas()
 {
     var r = $('#doc').get(0).getBoundingClientRect();
+
+	// Compute the amount that each direction needs to scale to match the new size.
+	var sf_width = r.width / canvas.width;
+	var sf_height = r.height / canvas.height;
+	// We want to make sure the viewport is still entirely visible in the canvas.
+	// So we want to scale the direction that has the higher scaling amount.
+	if(sf_width < sf_height)
+	{
+		// Find out how much the viewport must change to match the scale factor.
+		var adj_h = cv_viewport.height * (sf_height - 1);
+		// Move the viewport up.
+		cv_viewport.y -= adj_h * 0.5;
+		// Make the heights match.
+		cv_viewport.height += adj_h;
+	}
+	else
+	{
+		
+		// Find out how much the viewport must change to match the scale factor.
+		var adj_w = cv_viewport.width * (sf_width - 1);
+		// Move the viewport left.
+		cv_viewport.x -= adj_w * 0.5;
+		// Make the widths match.
+		cv_viewport.width += adj_w;
+	}
+
+	// Set the new canvas size.
     canvas.width = r.width;
     canvas.height = r.height;
+
+	// TODO: Make the canvas redraw
 }
