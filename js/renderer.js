@@ -56,5 +56,49 @@ function resize_canvas()
     canvas.width = r.width;
     canvas.height = r.height;
 
-	// TODO: Make the canvas redraw
+	redraw_canvas();
 }
+
+function redraw_canvas()
+{
+	var ctx = canvas.getContext('2d');
+	var image_data = draw_chunk(cv_viewport);
+	ctx.drawImage(image_data, 0, 0);
+}
+
+// The width of the minimum edge of any chunk.
+const chunk_pixel_width = 100;
+
+const TYPE_PATH = 0;
+
+function draw_chunk(port)
+{
+	var ctx = canvas.getContext('2d');
+	var min = Math.min(port.width, port.height);
+	// Create the chunk image data. We also scale the "chunk_pixel_width" so that the minimum side length will
+	// always be "chunk_pixel_width" pixels long.
+	var data = ctx.createImageData(chunk_pixel_width * port.width / min, chunk_pixel_width * port.height / min);
+	// Go through all elements in the page.
+	for(var i = 0; i < page_data.length; i++)
+	{
+		// No need to draw anything if the bounds don't intersect.
+		if(!doBoundsIntersect(port, page_data[i].bounds))
+		{
+			continue;
+		}
+		// Future proofing. Allowing different types (eg. primitive shapes, text, etc)
+		switch(page_data[i].type)
+		{
+			case TYPE_PATH:
+				draw_path(port, data);
+				break;
+		}
+	}
+	return data;
+}
+
+function draw_path(port, image_data)
+{
+	
+}
+
