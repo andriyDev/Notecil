@@ -161,6 +161,56 @@ function draw_circle(pt, radius, colour, port, image_data)
 	}
 }
 
+// Fills in the region between two lines.
+// We assume that both lines are in the form {a: {x, y}, b: {x, y}},
+// where a and b are end points of the line and a.y <= b.y
+function fill_between_lines(l1, l2, colour, image_data)
+{
+	// We only want to fill in the region where both lines are on the same horizontal line.
+	var min_y = Math.round(Math.max(l1.a.y, l2.a.y));
+	var max_y = Math.round(Math.min(l1.b.y, l2.b.y));
+	var inv_slope_l1 = (l1.b.x - l1.a.x) / (l1.b.y - l1.a.y);
+	var inv_slope_l2 = (l2.b.x - l2.a.x) / (l2.b.y - l2.a.y);
+	var l1_x = l1.a.x;
+	var l2_x = l2.a.x;
+	for(var y = min_y; y < max_y; y++)
+	{
+		// We don't want to assume the relative position of lines.
+		// Instead we just always start at the left-most line point and end at the right-most.
+		var start_x = Math.min(Math.round(l1_x), Math.round(l2_x));
+		for(var x = start_x; x < Math.round(l2_x); x++)
+		{
+			// TODO: Perform some "antialiasing"
+			blend_pixel(image_data, colour, {x: x, y: y});
+		}
+		// Move the points based on their slopes.
+		l1_x -= inv_slope_l1;
+		l2_x -= inv_slope_l2;
+	}
+}
+
+//  This assumes that the quad's points are not ordered, so "self-intersecting" quads are ignored.
+function fill_quad(pts, colour, image_data)
+{
+	// Sort points in increasing order.
+	pts.sort(function (a, b){ return a.y - b.y });
+
+	// We need all 4 lines to draw the quad.
+	// Both lines are "rooted" around the top and bottom points.
+	var l1 = {a: pts[0], b: pts[1]};
+	var l2 = {a: pts[0], b: pts[2]};
+	var l3 = {a: pts[1], b: pts[3]};
+	var l4 = {a: pts[2], b: pts[3]};
+	// Fill between the top 3 points.
+	fill_between_lines(l1, l2, colour, image_data);
+	// Fill between the bottom 3 points.
+	fill_between_lines(l3, l4, colour, image_data);
+	// We also need to fill between the "middle", since the lines won't "overlap" in the top and bottom.
+	// It's hard to explain... In any case, the solution is to fill between "opposite" lines.
+	fill_between_lines(l1, l4, colour, image_data);
+	fill_between_lines(l2, l3, colour, image_data);
+}
+
 const PATH_DRAW_SAMPLES_PER_UNIT = 3;
 
 function draw_path(path, port, image_data)
@@ -230,9 +280,9 @@ function draw_path(path, port, image_data)
 			// Compute these points.
 			var pt_l = {x: pt.x + norm.x * r_pix, y: pt.y + norm.y * r_pix};
 			var pt_r = {x: pt.x - norm.x * r_pix, y: pt.y - norm.y * r_pix};
-			// From here we can use last_pt_l/r and pt_l/r to render a quad.
 
-			// TODO: Actually render the quad here.
+			// From here we can use last_pt_l/r and pt_l/r to render a quad.
+			fill_quad([last_pt_l, last_ptr, pt_l, pt_r], path.colour, image_data);
 
 			// Move the last point to these points so that the next segment draws correctly.
 			last_pt_l = pt_l;
