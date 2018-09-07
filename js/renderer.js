@@ -43,7 +43,7 @@ function resize_canvas()
 	}
 	else
 	{
-		
+
 		// Find out how much the viewport must change to match the scale factor.
 		var adj_w = cv_viewport.width * (sf_width - 1);
 		// Move the viewport left.
@@ -161,6 +161,8 @@ function draw_circle(pt, radius, colour, port, image_data)
 	}
 }
 
+const PATH_DRAW_SAMPLES_PER_UNIT = 3;
+
 function draw_path(path, port, image_data)
 {
 	if(path.data.length == 0)
@@ -176,9 +178,65 @@ function draw_path(path, port, image_data)
 	}
 	// We now know we have at least two valid points.
 
-	for(var i = 0; i < path.data.length; i++)
+	// For each "middle" point (non-end points), we want to compute their slopes.
+	// We compute the first point's slope.
+	var slopes = [scale(getDelta(plot[0], plot[1]), plotSmoothingRatio)];
+	// This is based on a blog post by François Romain
+	// Src: https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
+	// To be clear, this implementation is significantly streamlined. Only the core ideas are still present.
+	for(var i = 1; i < plot.length - 1; i++)
 	{
-		
+		slopes.push(scale(getDelta(plot[i - 1], plot[i + 1]), plotSmoothingRatio));
+	}
+	// We also must not forget to compute the last point's slope.
+	slopes.push(scale(getDelta(plot[plot.length - 2], plot[plot.length - 1]), plotSmoothingRatio));
+
+	var s = canvas.width / cv_viewport.width;
+
+	// These points will hold the last point we computed (both left and right spokes).
+	// We initialize these as rotateBy90(dB/dt) * <point radius> * <viewport ratio> + <point>
+	var last_pt_r = {x: 3 * slopes[0].y * path.data[0].r * s + path.data[0].x, y: -3 * slopes[0].x * path.data[0].r * s + path.data[0].y};
+	var last_pt_l = {x: -3 * slopes[0].y * path.data[0].r * s + path.data[0].x, y: 3 * slopes[0].x * path.data[0].r * s + path.data[0].y};
+	// Start at the first segment
+	for(var i = 1; i < path.data.length; i++)
+	{
+		// Get the absolute tangents.
+		var c1 = {x: slopes[i - 1].x + path.data[i - 1].x, y: slopes[i - 1].y + path.data[i - 1].y};
+		var c2 = {x: path.data[i].x - slopes[i].x, y: path.data[i].y - slopes[i].y};
+
+		// We want the number of samples to be dependent on the length of the segment and the screen.
+		// This is a rough approximation, we simply use linear distance and hope that makes a nice sample count.
+		var delta = {x: path.data[i].x - path.data[i - 1].x, y: path.data[i].y - path.data[i - 1].y};
+		var samples = Math.ceil(Math.sqrt(delta.x * delta.x + delta.y * delta.y) * PATH_DRAW_SAMPLES_PER_UNIT * s);
+
+		// We start from 1 since the first point should already be computed
+		// We also include j == samples since we want to end on t = 1.
+		for(var j = 1; j <= samples; j++)
+		{
+			// Compute the normalized distance between the two points.
+			var t = j / samples;
+			var omt = 1 - t;
+			// Compute the bezier curve.
+			var pt = {x: path.data[i - 1].x * omt * omt * omt + 3 * c1.x * omt * omt * t + 3 * c2.x * omt * t * t + path.data[i].x * t * t * t,
+					y: path.data[i - 1].y * omt * omt * omt + 3 * c1.y * omt * omt * t + 3 * c2.y * omt * t * t + path.data[i].y * t * t * t};
+			// Compute the tangent of the bezier curve (at least the derivative).
+			var tang = {x: 3 * omt * omt * slopes[i - 1].x + 6 * omt * t * (c2.x - c1.x) + 3 * t * t * slopes[i].x,
+						y: 3 * omt * omt * slopes[i - 1].y + 6 * omt * t * (c2.y - c1.y) + 3 * t * t * slopes[i].y};
+			var tang_l = Math.sqrt(tang.x * tang.x + tang.y * tang.y);
+			// Rotate 90 degrees left and normalize to get a normal.
+			var norm = {x: -tang.y / tang_l, y: tang.x / tang_l};
+			// Linearly interpolate to find the radius of this point in the line and then scale by the screen to viewport ratio.
+			var r_pix = (path.data[i - 1].r * omt + path.data[i].r * t) * s;
+			// Compute these points.
+			var pt_l = {x: pt.x + norm.x * r_pix, y: pt.y + norm.y * r_pix};
+			var pt_r = {x: pt.x - norm.x * r_pix, y: pt.y - norm.y * r_pix};
+			// From here we can use last_pt_l/r and pt_l/r to render a quad.
+
+			// TODO: Actually render the quad here.
+
+			// Move the last point to these points so that the next segment draws correctly.
+			last_pt_l = pt_l;
+			last_pt_r = pt_r;
+		}
 	}
 }
-
