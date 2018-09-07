@@ -2,7 +2,7 @@
 // === Constants ===
 
 // How much should the path be smoothed. This means how much is the path allowed to deviate from the drawn points.
-const plotSmoothingRatio = 0.1;
+const plotSmoothingRatio = 1/3;
 
 // === State ===
 
@@ -385,7 +385,15 @@ function extractBounds(a, b)
 
 function doBoundsIntersect(a, b)
 {
-	return a.x < b.x2 && a.y < b.y2 && a.x2 >= b.x && a.y2 >= b.y;
+	if(a.x2 == undefined || b.x2 == undefined)
+	{
+		return a.x < b.x + b.width && a.y < b.y + b.height
+			&& a.x + a.width >= b.x && a.y + a.height >= b.y;
+	}
+	else
+	{
+		return a.x < b.x2 && a.y < b.y2 && a.x2 >= b.x && a.y2 >= b.y;
+	}
 }
 
 function getLineVals(a, b)

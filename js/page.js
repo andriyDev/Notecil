@@ -399,10 +399,10 @@ function openPage(ind)
 		$('#doc_hider').removeClass('hidden');
 		$('#no_page').addClass('hidden');
 
+		reloadPage();
+
 		// Ensure the canvas is sized to the doc now that it is visible.
 		resize_canvas();
-
-		reloadPage();
 
 		// TODO: Move the viewport to something more reasonable.
 	}
