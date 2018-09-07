@@ -164,6 +164,8 @@ function draw_circle(pt, radius, colour, port, image_data)
 // Fills in the region between two lines.
 // We assume that both lines are in the form {a: {x, y}, b: {x, y}},
 // where a and b are end points of the line and a.y <= b.y
+// This is based on (modified significantly) the "standard" algorithm for this webpage:
+// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
 function fill_between_lines(l1, l2, colour, image_data)
 {
 	// We only want to fill in the region where both lines are on the same horizontal line.
@@ -173,12 +175,12 @@ function fill_between_lines(l1, l2, colour, image_data)
 	var inv_slope_l2 = (l2.b.x - l2.a.x) / (l2.b.y - l2.a.y);
 	var l1_x = l1.a.x;
 	var l2_x = l2.a.x;
-	for(var y = min_y; y < max_y; y++)
+	for(var y = Math.max(min_y, 0); y < max_y && y < image_data.height; y++)
 	{
 		// We don't want to assume the relative position of lines.
 		// Instead we just always start at the left-most line point and end at the right-most.
 		var start_x = Math.min(Math.round(l1_x), Math.round(l2_x));
-		for(var x = start_x; x < Math.round(l2_x); x++)
+		for(var x = Math.max(start_x, 0); x < Math.round(l2_x) && x < image_data.width; x++)
 		{
 			// TODO: Perform some "antialiasing"
 			blend_pixel(image_data, colour, {x: x, y: y});
@@ -209,6 +211,15 @@ function fill_quad(pts, colour, image_data)
 	// It's hard to explain... In any case, the solution is to fill between "opposite" lines.
 	fill_between_lines(l1, l4, colour, image_data);
 	fill_between_lines(l2, l3, colour, image_data);
+}
+
+// Converts a point on the page to a point on the canvas.
+function page_to_image_point(page_point, viewport, image_data)
+{
+	var rel = {x: page_point.x - viewport.x, y: page_point.y - viewport.y};
+	rel.x *= image_data.width / viewport.width;
+	rel.y *= image_data.height / viewport.height;
+	return rel;
 }
 
 const PATH_DRAW_SAMPLES_PER_UNIT = 3;
@@ -282,7 +293,8 @@ function draw_path(path, port, image_data)
 			var pt_r = {x: pt.x - norm.x * r_pix, y: pt.y - norm.y * r_pix};
 
 			// From here we can use last_pt_l/r and pt_l/r to render a quad.
-			fill_quad([last_pt_l, last_ptr, pt_l, pt_r], path.colour, image_data);
+			fill_quad([page_to_image_point(last_pt_l, port, image_data), page_to_image_point(last_pt_r, port, image_data),
+				page_to_image_point(pt_l, port, image_data), page_to_image_point(pt_r, port, image_data)], path.colour, image_data);
 
 			// Move the last point to these points so that the next segment draws correctly.
 			last_pt_l = pt_l;
