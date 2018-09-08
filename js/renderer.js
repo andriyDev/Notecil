@@ -314,15 +314,13 @@ function draw_path(path, port, image_data)
 	// We also must not forget to compute the last point's slope.
 	slopes.push(scale(getDelta(path.data[path.data.length - 2], path.data[path.data.length - 1]), plotSmoothingRatio));
 
-	var s = canvas.width / cv_viewport.width;
-
 	// Compute the left and right spokes of the first point.
 	var last_pt_l;
 	var last_pt_r;
 	// Keep it scoped.
 	{
 		let start_tang = {x: 3 * slopes[0].x, y: 3 * slopes[0].y};
-		let spokes = compute_spokes(path.data[0], start_tang, path.data[0].r * s);
+		let spokes = compute_spokes(path.data[0], start_tang, path.data[0].r);
 		last_pt_l = spokes.l;
 		last_pt_r = spokes.r;
 	}
@@ -353,7 +351,7 @@ function draw_path(path, port, image_data)
 						y: 3 * omt * omt * slopes[i - 1].y + 6 * omt * t * (c2.y - c1.y) + 3 * t * t * slopes[i].y};
 
 			// Linearly interpolate to find the radius of this point in the line and then scale by the screen to viewport ratio.
-			var r_pix = (path.data[i - 1].r * omt + path.data[i].r * t) * s;
+			var r_pix = (path.data[i - 1].r * omt + path.data[i].r * t);
 			var spokes = compute_spokes(pt, tang, r_pix);
 			// From here we can use last_pt_l/r and pt_l/r to render a quad.
 			fill_quad([page_to_image_point(last_pt_l, port, image_data), page_to_image_point(last_pt_r, port, image_data),
