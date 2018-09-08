@@ -140,7 +140,7 @@ function chooseMouseCursor(pt)
 {
 	if(!boundsRect)
 	{
-		doc_display.attr("cursor", "default");
+		$(canvas).attr("cursor", "default");
 		return;
 	}
 	// Get the dom position of the bounds
@@ -154,59 +154,59 @@ function chooseMouseCursor(pt)
 	if(Math.abs(diff_left) < ScaleSelectionTool.maxCornerOffset
 		&& Math.abs(diff_top) < ScaleSelectionTool.maxCornerOffset)
 	{
-		doc_display.attr("cursor", "nw-resize");
+		$(canvas).attr("cursor", "nw-resize");
 	}
 	// If we are within the corner distance for the top-right
 	else if(Math.abs(diff_right) < ScaleSelectionTool.maxCornerOffset
 		&& Math.abs(diff_top) < ScaleSelectionTool.maxCornerOffset)
 	{
-		doc_display.attr("cursor", "ne-resize");
+		$(canvas).attr("cursor", "ne-resize");
 	}
 	// If we are within the corner distance for the bot-right
 	else if(Math.abs(diff_right) < ScaleSelectionTool.maxCornerOffset
 		&& Math.abs(diff_bot) < ScaleSelectionTool.maxCornerOffset)
 	{
-		doc_display.attr("cursor", "se-resize");
+		$(canvas).attr("cursor", "se-resize");
 	}
 	// If we are within the corner distance for the bot-left
 	else if(Math.abs(diff_left) < ScaleSelectionTool.maxCornerOffset
 		&& Math.abs(diff_bot) < ScaleSelectionTool.maxCornerOffset)
 	{
-		doc_display.attr("cursor", "sw-resize");
+		$(canvas).attr("cursor", "sw-resize");
 	}
 	// If we are within the edge distance for the top edge
 	else if(Math.abs(diff_top) < ScaleSelectionTool.maxNormalOffset
 		&& diff_left > 0 && diff_right < 0)
 	{
-		doc_display.attr("cursor", "n-resize");
+		$(canvas).attr("cursor", "n-resize");
 	}
 	// If we are within the edge distance for the right edge
 	else if(Math.abs(diff_right) < ScaleSelectionTool.maxNormalOffset
 		&& diff_top > 0 && diff_bot < 0)
 	{
-		doc_display.attr("cursor", "e-resize");
+		$(canvas).attr("cursor", "e-resize");
 	}
 	// If we are within the edge distance for the bottom edge
 	else if(Math.abs(diff_bot) < ScaleSelectionTool.maxNormalOffset
 		&& diff_left > 0 && diff_right < 0)
 	{
-		doc_display.attr("cursor", "s-resize");
+		$(canvas).attr("cursor", "s-resize");
 	}
 	// If we are within the edge distance for the left edge
 	else if(Math.abs(diff_left) < ScaleSelectionTool.maxNormalOffset
 		&& diff_top > 0 && diff_bot < 0)
 	{
-		doc_display.attr("cursor", "e-resize");
+		$(canvas).attr("cursor", "e-resize");
 	}
 	// If we are within the selection box.
 	else if(diff_left >= 0 && diff_left >= 0 && diff_bot < 0 && diff_right < 0)
 	{
-		doc_display.attr("cursor", "move");
+		$(canvas).attr("cursor", "move");
 	}
 	// If we didn't hit the selection box.
 	else
 	{
-		doc_display.attr("cursor", "default");
+		$(canvas).attr("cursor", "default");
 	}
 }
 

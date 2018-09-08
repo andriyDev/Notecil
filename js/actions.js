@@ -21,6 +21,16 @@ const ERASE_STROKE = 0;
 const ERASE_LINE = 1;
 var eraseMode = ERASE_STROKE;
 
+function includePointInBounds(bounds, pt)
+{
+	bounds.x = Math.min(bounds.x, pt.x);
+	bounds.y = Math.min(bounds.y, pt.y);
+	bounds.x2 = Math.max(bounds.x2, pt.x);
+	bounds.y2 = Math.max(bounds.y2, pt.y);
+	bounds.width = bounds.x2 - bounds.x;
+	bounds.height = bounds.y2 - bounds.y;
+}
+
 // A class to generalize what a tool must have.
 class Tool
 {
@@ -58,12 +68,12 @@ class PanTool extends Tool
 	moveUse(pt)
 	{
 		super.moveUse(pt);
-		// Get the clicked point in SVG coordinates.
+		// Get the clicked point in page coordinates.
 		var panEnd = ConvertToPagePoint(pt);
 		// Get how much the pan moved.
 		var deltaPan = {x: panEnd.x - this.startPt.x, y: panEnd.y - this.startPt.y};
 
-		// Use the delta to adjust the viewbox.
+		// Use the delta to adjust the viewport.
 		cv_viewport.x -= deltaPan.x;
 		cv_viewport.y -= deltaPan.y;
 		needsRedraw = true;
@@ -106,7 +116,7 @@ class PointerTool extends Tool
 	{
 		super.startUse(pt);
 		this.lastMousePos = pt;
-		// Get the clicked point in SVG coordinates.
+		// Get the clicked point in page coordinates.
 		pt = ConvertToPagePoint(pt);
 		// Keep track of the point clicked. This is to detect how far the user has moved.
 		this.drawDist = 0;
@@ -136,7 +146,7 @@ class PointerTool extends Tool
 		if(this.drawDist >= PointerTool.distanceForLine * PointerTool.distanceForLine)
 		{
 			// If so, add the new point.
-			// Compute the clicked point in SVG coordinates.
+			// Compute the clicked point in page coordinates.
 			pt = ConvertToPagePoint(pt);
 			// Add the point.
 			this.addPoint(pt);
@@ -149,7 +159,7 @@ class PointerTool extends Tool
 	{
 		super.stopUse();
 
-		// Calculate the clicked point in SVG coordinates.
+		// Calculate the clicked point in page coordinates.
 		var pt = ConvertToPagePoint(this.lastMousePos);
 		// End the plot.
 		this.endPlot(pt);
@@ -176,22 +186,24 @@ class BrushTool extends PointerTool
 	startPlot(pt)
 	{
 		super.startPlot(pt);
-		// Start the plot list.
-		this.plot = [{x: pt.x, y: pt.y}];
-		// Create the path.
 		var i = selectedBrush == -1 ? 0: selectedBrush;
 		var b = brushes && brushes.length > i ? brushes[i] : {colour: "#000000", width: 5};
-		// TODO: Make attr depend on the current "brush" (as in stroke-width and colour)
-		this.drawPath = doc_display.path(GetPlotStr(this.lot)).attr({fill: "none", stroke: b.colour, "stroke-width": b.width});
+		// Start the path.
+		this.path = {type: TYPE_PATH, colour: b.colour, width: b.width, bounds: {x: pt.x, y: pt.y, x2: pt.x, y2: pt.y, width: 0, height: 0}, data: [{x: pt.x, y: pt.y, r: 1}]};
+		// Add the path to the render list.
+		page_data.push(this.path);
+		// We don't need to redraw the screen yet until we have at least 2 points.
 	}
 
 	addPoint(pt)
 	{
 		super.addPoint(pt);
-		// Add the point to the plot.
-		this.plot.push({x: pt.x, y: pt.y});
-		// Update the path.
-		this.drawPath.plot(GetPlotStr(this.plot));
+		// Add the point to the path.
+		this.path.data.push({x: pt.x, y: pt.y, r: 1});
+		// Adjust the bounds.
+		includePointInBounds(this.path.bounds, pt);
+		// Mark the screen to be redrawn.
+		needsRedraw = true;
 	}
 
 	endPlot(pt)

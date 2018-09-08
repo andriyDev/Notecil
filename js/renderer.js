@@ -18,12 +18,12 @@ function renderer_init()
     cv_viewport = {x: 0, y: 0, width: 0, height: 0};
     $(window).resize(resize_canvas);
 
-	page_data.push({type: TYPE_PATH, colour: {r: 0, g: 0, b: 0, a: 1}, data: []});
+	page_data.push({type: TYPE_PATH, colour: {r: 0, g: 0, b: 0, a: 1}, width: 10, data: []});
 	var min = undefined;
 	var max = undefined;
 	for(var i = 0; i <= 10; i++)
 	{
-		page_data[0].data.push({x: (i * 2 / 10 - 1) * 100 + 300, y: (Math.cos(i / 10 * 2 * Math.PI)) * 100 + 300, r: 10});
+		page_data[0].data.push({x: (i * 2 / 10 - 1) * 100, y: (Math.cos(i / 10 * 2 * Math.PI)) * 100, r: 1});
 		if(i == 0)
 		{
 			min = page_data[0].data[0];
@@ -287,7 +287,7 @@ function compute_spokes(pt, tang, r)
 	return {l: pt_l, r: pt_r};
 }
 
-const PATH_DRAW_SAMPLES_PER_UNIT = 0.1;
+const PATH_DRAW_SAMPLES_PER_UNIT = 0.06;
 
 function draw_path(path, port, image_data)
 {
@@ -320,7 +320,7 @@ function draw_path(path, port, image_data)
 	// Keep it scoped.
 	{
 		let start_tang = {x: 3 * slopes[0].x, y: 3 * slopes[0].y};
-		let spokes = compute_spokes(path.data[0], start_tang, path.data[0].r);
+		let spokes = compute_spokes(path.data[0], start_tang, path.data[0].r * path.width);
 		last_pt_l = spokes.l;
 		last_pt_r = spokes.r;
 	}
@@ -332,10 +332,11 @@ function draw_path(path, port, image_data)
 		var c2 = {x: path.data[i].x - slopes[i].x, y: path.data[i].y - slopes[i].y};
 
 		// We want the number of samples to be dependent on the length of the segment and the screen.
+		var p1 = page_to_image_point(path.data[i - 1], port, image_data);
+		var p2 = page_to_image_point(path.data[i], port, image_data);
 		// This is a rough approximation, we simply use linear distance and hope that makes a nice sample count.
-		var delta = {x: path.data[i].x - path.data[i - 1].x, y: path.data[i].y - path.data[i - 1].y};
-		var samples = Math.ceil(Math.sqrt(delta.x * delta.x + delta.y * delta.y) * PATH_DRAW_SAMPLES_PER_UNIT * s);
-
+		var delta = {x: p2.x - p1.x, y: p2.y - p1.y};
+		var samples = Math.ceil(Math.sqrt(delta.x * delta.x + delta.y * delta.y) * PATH_DRAW_SAMPLES_PER_UNIT);
 		// We start from 1 since the first point should already be computed
 		// We also include j == samples since we want to end on t = 1.
 		for(var j = 1; j <= samples; j++)
@@ -350,8 +351,8 @@ function draw_path(path, port, image_data)
 			var tang = {x: 3 * omt * omt * slopes[i - 1].x + 6 * omt * t * (c2.x - c1.x) + 3 * t * t * slopes[i].x,
 						y: 3 * omt * omt * slopes[i - 1].y + 6 * omt * t * (c2.y - c1.y) + 3 * t * t * slopes[i].y};
 
-			// Linearly interpolate to find the radius of this point in the line and then scale by the screen to viewport ratio.
-			var r_pix = (path.data[i - 1].r * omt + path.data[i].r * t);
+			// Linearly interpolate to find the radius of this point in the line.
+			var r_pix = (path.data[i - 1].r * omt + path.data[i].r * t) * path.width;
 			var spokes = compute_spokes(pt, tang, r_pix);
 			// From here we can use last_pt_l/r and pt_l/r to render a quad.
 			fill_quad([page_to_image_point(last_pt_l, port, image_data), page_to_image_point(last_pt_r, port, image_data),
