@@ -187,7 +187,7 @@ class BrushTool extends PointerTool
 	{
 		super.startPlot(pt);
 		var i = selectedBrush == -1 ? 0: selectedBrush;
-		var b = brushes && brushes.length > i ? brushes[i] : {colour: "#000000", width: 5};
+		var b = brushes && brushes.length > i ? brushes[i] : {colour: {r: 0, g: 0, b: 0, a: 1}, width: 5};
 		// Start the path.
 		this.path = {type: TYPE_PATH, colour: b.colour, width: b.width, bounds: {x: pt.x, y: pt.y, x2: pt.x, y2: pt.y, width: 0, height: 0}, data: [{x: pt.x, y: pt.y, r: 1}]};
 		// Add the path to the render list.

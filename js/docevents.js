@@ -25,11 +25,11 @@ function handlePointerDown(ev)
 	hide_context_menus();
 	clearTool();
 	currentTool = new ScaleSelectionTool();
-	if(currentTool.startUse({x: ev.clientX, y: ev.clientY}))
+	if(currentTool.startUse({x: ev.offsetX, y: ev.offsetY}))
 	{
 		return;
 	}
-	else if((currentTool = new MoveSelectionTool()).startUse({x: ev.clientX, y: ev.clientY}))
+	else if((currentTool = new MoveSelectionTool()).startUse({x: ev.offsetX, y: ev.offsetY}))
 	{
 		return;
 	}
@@ -74,7 +74,7 @@ function onMouseDown(ev)
 
 	if(currentTool)
 	{
-		currentTool.startUse({x: ev.clientX, y: ev.clientY});
+		currentTool.startUse({x: ev.offsetX, y: ev.offsetY});
 	}
 }
 
@@ -95,7 +95,7 @@ function onPenDown(ev)
 
 	if(currentTool)
 	{
-		currentTool.startUse({x: ev.clientX, y: ev.clientY});
+		currentTool.startUse({x: ev.offsetX, y: ev.offsetY});
 	}
 }
 
@@ -221,7 +221,7 @@ function handlePointerMove(ev)
 	}
 	if(!currentTool)
 	{
-		chooseMouseCursor({x: ev.clientX, y: ev.clientY});
+		chooseMouseCursor({x: ev.offsetX, y: ev.offsetY});
 	}
 	switch(ev.pointerType)
 	{
@@ -245,7 +245,7 @@ function onMouseMove(ev)
 {
 	if(currentTool)
 	{
-		currentTool.moveUse({x: ev.clientX, y: ev.clientY});
+		currentTool.moveUse({x: ev.offsetX, y: ev.offsetY});
 	}
 }
 
@@ -253,7 +253,7 @@ function onPenMove(ev)
 {
 	if(currentTool)
 	{
-		currentTool.moveUse({x: ev.clientX, y: ev.clientY});
+		currentTool.moveUse({x: ev.offsetX, y: ev.offsetY});
 	}
 }
 
@@ -291,6 +291,11 @@ function onPenExit(ev)
 	clearTool();
 }
 
+function getTouchPt(ev)
+{
+	return {x: ev.clientX - ev.target.offsetLeft, y: ev.clientY - ev.target.offsetTop};
+}
+
 function onTouchDown(ev)
 {
 	hide_context_menus();
@@ -299,14 +304,15 @@ function onTouchDown(ev)
     // We need to figure out what kind of gesture is being done.
     if(ev.targetTouches.length == 1)
     {
+		var p1 = getTouchPt(ev.targetTouches.item(0));
         touchState = 1;
         // If there is only one touch on the screen, that means we need to start panning/manipulating the selection.
 		currentTool = new ScaleSelectionTool();
-		if(currentTool.startUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY}))
+		if(currentTool.startUse(p1))
 		{
 			return;
 		}
-		else if((currentTool = new MoveSelectionTool()).startUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY}))
+		else if((currentTool = new MoveSelectionTool()).startUse(p1))
 		{
 			return;
 		}
@@ -316,14 +322,15 @@ function onTouchDown(ev)
 		}
 
 		currentTool = new PanTool();
-		currentTool.startUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY});
+		currentTool.startUse(p1);
     }
     else if(ev.targetTouches.length == 2)
     {
+		var p1 = getTouchPt(ev.targetTouches.item(0));
+		var p2 = getTouchPt(ev.targetTouches.item(1));
         touchState = 2;
 		// If there are 2 touches, we need to start pinching.
-        startPinch({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY}
-                , {x: ev.targetTouches.item(1).clientX, y: ev.targetTouches.item(1).clientY});
+        startPinch(p1, p2);
     }
     else
     {
@@ -340,15 +347,17 @@ function onTouchMove(ev)
 {
     if(touchState == 1)
     {
+		var p1 = getTouchPt(ev.targetTouches.item(0));
 		if(currentTool)
 		{
-        	currentTool.moveUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY});
+        	currentTool.moveUse(p1);
 		}
     }
     else if (touchState == 2)
     {
-        movePinch({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY}
-                , {x: ev.targetTouches.item(1).clientX, y: ev.targetTouches.item(1).clientY});
+		var p1 = getTouchPt(ev.targetTouches.item(0));
+		var p2 = getTouchPt(ev.targetTouches.item(1));
+        movePinch(p1, p2);
     }
 }
 
@@ -367,19 +376,21 @@ function onTouchUp(ev)
     }
     else if(ev.targetTouches.length == 1)
     {
+		var p1 = getTouchPt(ev.targetTouches.item(0));
         if(touchState == 2)
         {
             stopPinch();
         }
         touchState = 1;
 		currentTool = new PanTool();
-		currentTool.startUse({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY});
+		currentTool.startUse(p1);
     }
     else if(ev.targetTouches.length == 2)
     {
+		var p1 = getTouchPt(ev.targetTouches.item(0));
+		var p2 = getTouchPt(ev.targetTouches.item(1));
         touchState = 2;
-        startPinch({x: ev.targetTouches.item(0).clientX, y: ev.targetTouches.item(0).clientY}
-                , {x: ev.targetTouches.item(1).clientX, y: ev.targetTouches.item(1).clientY});
+        startPinch(p1, p2);
     }
 }
 
