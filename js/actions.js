@@ -52,22 +52,21 @@ class PanTool extends Tool
 	{
 		super.startUse(pt);
 		// Just store the start point of the pan so we can later calculate the delta of the pan.
-		this.startPt = doc_display.point(pt.x, pt.y);
+		this.startPt = ConvertToPagePoint(pt);
 	}
 
 	moveUse(pt)
 	{
 		super.moveUse(pt);
 		// Get the clicked point in SVG coordinates.
-		var panEnd = doc_display.point(pt.x, pt.y);
+		var panEnd = ConvertToPagePoint(pt);
 		// Get how much the pan moved.
 		var deltaPan = {x: panEnd.x - this.startPt.x, y: panEnd.y - this.startPt.y};
 
 		// Use the delta to adjust the viewbox.
-		var v = doc_display.viewbox();
-		v.x -= deltaPan.x;
-		v.y -= deltaPan.y;
-		doc_display.viewbox(v);
+		cv_viewport.x -= deltaPan.x;
+		cv_viewport.y -= deltaPan.y;
+		needsRedraw = true;
 	}
 
 	stopUse()
@@ -108,7 +107,7 @@ class PointerTool extends Tool
 		super.startUse(pt);
 		this.lastMousePos = pt;
 		// Get the clicked point in SVG coordinates.
-		pt = doc_display.point(pt.x, pt.y);
+		pt = ConvertToPagePoint(pt);
 		// Keep track of the point clicked. This is to detect how far the user has moved.
 		this.drawDist = 0;
 		// Begin the plot.
@@ -138,7 +137,7 @@ class PointerTool extends Tool
 		{
 			// If so, add the new point.
 			// Compute the clicked point in SVG coordinates.
-			pt = doc_display.point(pt.x, pt.y);
+			pt = ConvertToPagePoint(pt);
 			// Add the point.
 			this.addPoint(pt);
 			// Reset the drawDist.
@@ -151,7 +150,7 @@ class PointerTool extends Tool
 		super.stopUse();
 
 		// Calculate the clicked point in SVG coordinates.
-		var pt = doc_display.point(this.lastMousePos.x, this.lastMousePos.y);
+		var pt = ConvertToPagePoint(this.lastMousePos);
 		// End the plot.
 		this.endPlot(pt);
 		// Clear everything.
@@ -557,7 +556,7 @@ class ScaleSelectionTool extends Tool
 			// If we reached here that must mean that one of the ifs passed,
 			// so we will be scaling.
 			// Assign the start position.
-			this.startPos = doc_display.point(pt.x, pt.y);
+			this.startPos = ConvertToPagePoint(pt);
 			return true;
 		}
 		else
@@ -569,7 +568,7 @@ class ScaleSelectionTool extends Tool
 	moveUse(pt)
 	{
 		super.moveUse(pt);
-		pt = doc_display.point(pt.x, pt.y);
+		pt = ConvertToPagePoint(pt);
 		var delta = {x: pt.x - this.startPos.x, y: pt.y - this.startPos.y};
 		var tl_diff = {x: 0, y: 0};
 
@@ -670,7 +669,7 @@ class MoveSelectionTool extends Tool
 			// Are we inside the bounds?
 			if(diff_left >= 0 && diff_left >= 0 && diff_bot < 0 && diff_right < 0)
 			{
-				this.startPos = doc_display.point(pt.x, pt.y);
+				this.startPos = ConvertToPagePoint(pt);
 				return true;
 			}
 			else
@@ -687,7 +686,7 @@ class MoveSelectionTool extends Tool
 	moveUse(pt)
 	{
 		super.moveUse(pt);
-		pt = doc_display.point(pt.x, pt.y);
+		pt = ConvertToPagePoint(pt);
 		var delta = {x: pt.x - this.startPos.x, y: pt.y - this.startPos.y};
 
 		var bbox = boundsRect.bbox();
@@ -807,12 +806,12 @@ function GetPlotStr(plot)
 
 function startSelectionMove(pt)
 {
-	pt = doc_display.point(pt.x, pt.y);
+	pt = ConvertToPagePoint(pt);
 }
 
 function moveSelectionMove(pt)
 {
-	pt = doc_display.point(pt.x, pt.y);
+	pt = ConvertToPagePoint(pt);
 }
 
 function endSelectionMove()
@@ -823,7 +822,7 @@ function endSelectionMove()
 function startPinch(pt1, pt2)
 {
     initialPinchPoints = {a: pt1, b: pt2};
-    initialPinchBox = doc_display.viewbox();
+    initialPinchBox = {x: cv_viewport.x, y: cv_viewport.y, x2: cv_viewport.x2, y2: cv_viewport.y2, width: cv_viewport.width, height: cv_viewport.height};
 }
 
 function movePinch(pt1, pt2)
@@ -838,8 +837,8 @@ function movePinch(pt1, pt2)
     var delta = {x: pt2.x - pt1.x, y: pt2.y - pt1.y};
     var dist = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
 
-    previousCenter = doc_display.point(previousCenter.x, previousCenter.y);
-    center = doc_display.point(center.x, center.y);
+    previousCenter = ConvertToPagePoint(previousCenter);
+    center = ConvertToPagePoint(center);
 
     var centerDelta = {x: center.x - previousCenter.x, y: center.y - previousCenter.y};
 
@@ -857,8 +856,11 @@ function movePinch(pt1, pt2)
     v.y = vc.y - ve.y;
     v.width = ve.x * 2;
     v.height = ve.y * 2;
+	v.x2 = v.x + v.width;
+	v.y2 = v.y + v.height;
 
-    doc_display.viewbox(v);
+	needsRedraw = true;
+	cv_viewport = v;
 }
 
 function stopPinch()

@@ -3,6 +3,8 @@ var canvas;
 var cv_viewport;
 var page_data;
 
+var needsRedraw = true;
+
 function renderer_init()
 {
     page_data = [];
@@ -34,6 +36,9 @@ function renderer_init()
 		}
 	}
 	page_data[0].bounds = {x: min.x, y: min.y, x2: max.x, y2: max.y, width: max.x - min.x, height: max.y - min.y};
+
+	// Try to redraw the frame every 60 seconds, or about 16 ms.
+	setInterval(redraw_canvas, 16);
 }
 
 function ConvertToPagePoint(clientPt)
@@ -45,6 +50,8 @@ function ConvertToPagePoint(clientPt)
 function resize_canvas()
 {
     var r = $('#doc').get(0).getBoundingClientRect();
+
+	needsRedraw = true;
 
 	if(canvas.width == 0 || canvas.height == 0)
 	{
@@ -93,6 +100,11 @@ function resize_canvas()
 // TODO: Draw chunks instead of one big chunk. Reuse already generated chunks.
 function redraw_canvas()
 {
+	if(!needsRedraw)
+	{
+		return;
+	}
+	needsRedraw = false;
 	var ctx = canvas.getContext('2d');
 	var image_data = draw_chunk(cv_viewport);
 	if(image_data)

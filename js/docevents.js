@@ -409,21 +409,17 @@ function zoom(ev)
 
 function docevents_init()
 {
-	return;
 	// Add the pointer event listeners.
-	doc_display.on("pointerdown", handlePointerDown, window);
-	doc_display.on("pointerup", handlePointerUp, window);
-	doc_display.on("pointermove", handlePointerMove, window);
-	doc_display.on("pointerleave", handlePointerExit, window);
+	canvas.addEventListener("pointerdown", handlePointerDown, window);
+	canvas.addEventListener("pointerup", handlePointerUp, window);
+	canvas.addEventListener("pointermove", handlePointerMove, window);
+	canvas.addEventListener("pointerleave", handlePointerExit, window);
 
 	// For some reason, the touch events don't work properly as pointer events.
 	// So instead, we will assign direct event handlers.
-	doc_display.on("touchstart", onTouchDown, window);
-	doc_display.on("touchend", onTouchUp, window);
-	doc_display.on("touchmove", onTouchMove, window);
+	canvas.addEventListener("touchstart", onTouchDown, window);
+	canvas.addEventListener("touchend", onTouchUp, window);
+	canvas.addEventListener("touchmove", onTouchMove, window);
 
-	doc_display.on("wheel", zoom, window);
-
-	// Assign an arbitrary viewbox.
-	doc_display.viewbox(0,0,1000,1000);
+	canvas.addEventListener("wheel", zoom, window);
 }
