@@ -245,23 +245,21 @@ function fill_between_lines(l1, l2, colour, image_data)
 	}
 }
 
-//  This assumes that the quad's points are not ordered, so "self-intersecting" quads are ignored.
+//  This assumes that the quad's points are ordered going clockwise.
 function fill_quad(pts, colour, image_data)
 {
-	// Sort points in increasing order.
-	pts.sort(function (a, b){ return a.y - b.y });
-
+	var tmp;
 	// We need all 4 lines to draw the quad.
-	// Both lines are "rooted" around the top and bottom points.
-	var l1 = {a: pts[0], b: pts[1]};
-	var l2 = {a: pts[0], b: pts[2]};
-	var l3 = {a: pts[1], b: pts[3]};
-	var l4 = {a: pts[2], b: pts[3]};
-	// Fill between the top 3 points.
+	// Create each line, then ensure the order of the points is correct.
+	var l1 = {a: pts[0], b: pts[1]}; if(l1.b.y < l1.a.y) { tmp = l1.a; l1.a = l1.b; l1.b = tmp; }
+	var l2 = {a: pts[0], b: pts[3]}; if(l2.b.y < l2.a.y) { tmp = l2.a; l2.a = l2.b; l2.b = tmp; }
+	var l3 = {a: pts[1], b: pts[2]}; if(l3.b.y < l3.a.y) { tmp = l3.a; l3.a = l3.b; l3.b = tmp; }
+	var l4 = {a: pts[3], b: pts[2]}; if(l4.b.y < l4.a.y) { tmp = l4.a; l4.a = l4.b; l4.b = tmp; }
+	// Fill between the "top-left" lines
 	fill_between_lines(l1, l2, colour, image_data);
-	// Fill between the bottom 3 points.
+	// Fill between the "bottom-right" lines
 	fill_between_lines(l3, l4, colour, image_data);
-	// We also need to fill between the "middle", since the lines won't "overlap" in the top and bottom.
+	// We also need to fill across the lines, since the lines won't "overlap" in the top and bottom.
 	// It's hard to explain... In any case, the solution is to fill between "opposite" lines.
 	fill_between_lines(l1, l4, colour, image_data);
 	fill_between_lines(l2, l3, colour, image_data);
@@ -336,7 +334,7 @@ function draw_path(path, port, image_data)
 		var p2 = page_to_image_point(path.data[i], port, image_data);
 		// This is a rough approximation, we simply use linear distance and hope that makes a nice sample count.
 		var delta = {x: p2.x - p1.x, y: p2.y - p1.y};
-		var samples = Math.ceil(Math.sqrt(delta.x * delta.x + delta.y * delta.y) * PATH_DRAW_SAMPLES_PER_UNIT);
+		var samples = 1;//Math.ceil(Math.sqrt(delta.x * delta.x + delta.y * delta.y) * PATH_DRAW_SAMPLES_PER_UNIT);
 		// We start from 1 since the first point should already be computed
 		// We also include j == samples since we want to end on t = 1.
 		for(var j = 1; j <= samples; j++)
@@ -355,8 +353,8 @@ function draw_path(path, port, image_data)
 			var r_pix = (path.data[i - 1].r * omt + path.data[i].r * t) * path.width;
 			var spokes = compute_spokes(pt, tang, r_pix);
 			// From here we can use last_pt_l/r and pt_l/r to render a quad.
-			fill_quad([page_to_image_point(last_pt_l, port, image_data), page_to_image_point(last_pt_r, port, image_data),
-				page_to_image_point(spokes.l, port, image_data), page_to_image_point(spokes.r, port, image_data)], path.colour, image_data);
+			fill_quad([page_to_image_point(spokes.l, port, image_data), page_to_image_point(spokes.r, port, image_data),
+				page_to_image_point(last_pt_r, port, image_data), page_to_image_point(last_pt_l, port, image_data)], path.colour, image_data);
 
 			// Move the last point to these points so that the next segment draws correctly.
 			last_pt_l = spokes.l;
