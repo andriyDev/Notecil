@@ -102,6 +102,11 @@ class PointerTool extends Tool
 		// Nothing to do for the generic pointer tool.
 	}
 
+	adjustPoint(pt)
+	{
+		// Nothing to do for the generic pointer tool.
+	}
+
 	addPoint(pt)
 	{
 		// Nothing to do for the generic pointer tool.
@@ -141,17 +146,21 @@ class PointerTool extends Tool
 		// Add the amount we moved to the current distance we have moved.
 		this.drawDist += delta.x * delta.x + delta.y * delta.y;
 
+		// Compute the clicked point in page coordinates.
+		pt = ConvertToPagePoint(pt);
 		// Is the distance from the last point more than the distance to draw a line?
 		// This is for performance, no need to add too many points.
 		if(this.drawDist >= PointerTool.distanceForLine * PointerTool.distanceForLine)
 		{
 			// If so, add the new point.
-			// Compute the clicked point in page coordinates.
-			pt = ConvertToPagePoint(pt);
 			// Add the point.
 			this.addPoint(pt);
 			// Reset the drawDist.
 			this.drawDist = 0;
+		}
+		else
+		{
+			this.adjustPoint(pt);
 		}
 	}
 
@@ -189,10 +198,20 @@ class BrushTool extends PointerTool
 		var i = selectedBrush == -1 ? 0: selectedBrush;
 		var b = brushes && brushes.length > i ? brushes[i] : {colour: {r: 0, g: 0, b: 0, a: 1}, width: 5};
 		// Start the path.
-		this.path = {type: TYPE_PATH, colour: b.colour, width: b.width, bounds: {x: pt.x, y: pt.y, x2: pt.x, y2: pt.y, width: 0, height: 0}, data: [{x: pt.x, y: pt.y, r: 1}]};
+		this.path = {type: TYPE_PATH, colour: b.colour, width: b.width, bounds: {x: pt.x, y: pt.y, x2: pt.x, y2: pt.y, width: 0, height: 0}, data: [{x: pt.x, y: pt.y, r: 1}, {x: pt.x, y: pt.y, r: 1}]};
 		// Add the path to the render list.
 		page_data.push(this.path);
 		// We don't need to redraw the screen yet until we have at least 2 points.
+	}
+
+	adjustPoint(pt)
+	{
+		super.adjustPoint(pt);
+		// Adjust the last point.
+		this.path.data[this.path.data.length - 1].x = pt.x;
+		this.path.data[this.path.data.length - 1].y = pt.y;
+		// Mark the screen to be redrawn.
+		needsRedraw = true;
 	}
 
 	addPoint(pt)

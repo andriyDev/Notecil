@@ -338,7 +338,7 @@ function draw_path(path, port, image_data)
 		var p2 = page_to_image_point(path.data[i], port, image_data);
 		// This is a rough approximation, we simply use linear distance and hope that makes a nice sample count.
 		var delta = {x: p2.x - p1.x, y: p2.y - p1.y};
-		var samples = 1;//Math.ceil(Math.sqrt(delta.x * delta.x + delta.y * delta.y) * PATH_DRAW_SAMPLES_PER_UNIT);
+		var samples = Math.ceil(Math.sqrt(delta.x * delta.x + delta.y * delta.y) * PATH_DRAW_SAMPLES_PER_UNIT);
 		// We start from 1 since the first point should already be computed
 		// We also include j == samples since we want to end on t = 1.
 		for(var j = 1; j <= samples; j++)
