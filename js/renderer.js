@@ -259,6 +259,10 @@ function fill_quad(pts, colour, image_data)
 	fill_between_lines(l1, l2, colour, image_data);
 	// Fill between the "bottom-right" lines
 	fill_between_lines(l3, l4, colour, image_data);
+	// Fill between the "top-right" lines
+	fill_between_lines(l1, l3, colour, image_data);
+	// Fill between the "bottom-left" lines
+	fill_between_lines(l2, l4, colour, image_data);
 	// We also need to fill across the lines, since the lines won't "overlap" in the top and bottom.
 	// It's hard to explain... In any case, the solution is to fill between "opposite" lines.
 	fill_between_lines(l1, l4, colour, image_data);
