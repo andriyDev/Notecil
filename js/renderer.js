@@ -17,7 +17,7 @@ function renderer_init()
     // Start with an empty viewport.
     cv_viewport = {x: 0, y: 0, width: 0, height: 0};
     $(window).resize(resize_canvas);
-
+	/*
 	page_data.push({type: TYPE_PATH, colour: {r: 0, g: 0, b: 0, a: 1}, width: 10, data: []});
 	var min = undefined;
 	var max = undefined;
@@ -36,7 +36,7 @@ function renderer_init()
 		}
 	}
 	page_data[0].bounds = {x: min.x, y: min.y, x2: max.x, y2: max.y, width: max.x - min.x, height: max.y - min.y};
-
+	*/
 	// Try to redraw the frame every 60 seconds, or about 16 ms.
 	setInterval(redraw_canvas, 16);
 }
@@ -226,8 +226,13 @@ function fill_between_lines(l1, l2, colour, image_data)
 	var max_y = Math.min(Math.round(Math.min(l1.b.y, l2.b.y)), image_data.height);
 	var inv_slope_l1 = (l1.b.x - l1.a.x) / (l1.b.y - l1.a.y);
 	var inv_slope_l2 = (l2.b.x - l2.a.x) / (l2.b.y - l2.a.y);
-	var l1_x = l1.a.x + (l1.b.y - l1.a.y == 0 ? 0 : (min_y - l1.a.y) * inv_slope_l1);
-	var l2_x = l2.a.x + (l2.b.y - l2.a.y == 0 ? 0 : (min_y - l2.a.y) * inv_slope_l2);
+	// If the lines are strictly horizontal, just ignore it.
+	if(l1.b.y - l1.a.y <= Number.EPSILON || l2.b.y - l2.a.y <= Number.EPSILON)
+	{
+		return;
+	}
+	var l1_x = l1.a.x + (min_y - l1.a.y) * inv_slope_l1;
+	var l2_x = l2.a.x + (min_y - l2.a.y) * inv_slope_l2;
 	for(var y = min_y; y < max_y; y++)
 	{
 		// We don't want to assume the relative position of lines.
@@ -240,8 +245,8 @@ function fill_between_lines(l1, l2, colour, image_data)
 			blend_pixel(image_data, colour, {x: x, y: y});
 		}
 		// Move the points based on their slopes.
-		l1_x += (l1.b.y - l1.a.y == 0 ? 0 : inv_slope_l1);
-		l2_x += (l2.b.y - l2.a.y == 0 ? 0 : inv_slope_l2);
+		l1_x += inv_slope_l1;
+		l2_x += inv_slope_l2;
 	}
 }
 
