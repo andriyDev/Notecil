@@ -181,7 +181,7 @@ class PointerTool extends Tool
 // === Pointer Tool Static Values === //
 
 // How much does the cursor have to move before generating another point.
-PointerTool.distanceForLine = 100;
+PointerTool.distanceForLine = 10;
 // The maximum distance that the mouse can move before the input is ignored. This is for when the pen decides to fly off the rails.
 PointerTool.maxMoveDistance = 20;
 

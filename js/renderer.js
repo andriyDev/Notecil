@@ -222,8 +222,8 @@ function draw_circle(pt, radius, colour, port, image_data)
 function fill_between_lines(l1, l2, colour, image_data)
 {
 	// We only want to fill in the region where both lines are on the same horizontal line.
-	var min_y = Math.max(Math.round(Math.max(l1.a.y, l2.a.y)), 0);
-	var max_y = Math.min(Math.round(Math.min(l1.b.y, l2.b.y)), image_data.height);
+	var min_y = Math.max(Math.ceil(Math.max(l1.a.y, l2.a.y)), 0);
+	var max_y = Math.min(Math.ceil(Math.min(l1.b.y, l2.b.y)), image_data.height);
 	var inv_slope_l1 = (l1.b.x - l1.a.x) / (l1.b.y - l1.a.y);
 	var inv_slope_l2 = (l2.b.x - l2.a.x) / (l2.b.y - l2.a.y);
 	// If the lines are strictly horizontal, just ignore it.
