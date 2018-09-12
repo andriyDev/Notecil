@@ -74,7 +74,7 @@ function onMouseDown(ev)
 
 	if(currentTool)
 	{
-		currentTool.startUse({x: ev.offsetX, y: ev.offsetY});
+		currentTool.startUse({x: ev.offsetX, y: ev.offsetY}, ev);
 	}
 }
 
@@ -95,7 +95,7 @@ function onPenDown(ev)
 
 	if(currentTool)
 	{
-		currentTool.startUse({x: ev.offsetX, y: ev.offsetY});
+		currentTool.startUse({x: ev.offsetX, y: ev.offsetY}, ev);
 	}
 }
 
@@ -245,7 +245,7 @@ function onMouseMove(ev)
 {
 	if(currentTool)
 	{
-		currentTool.moveUse({x: ev.offsetX, y: ev.offsetY});
+		currentTool.moveUse({x: ev.offsetX, y: ev.offsetY}, ev);
 	}
 }
 
@@ -253,7 +253,7 @@ function onPenMove(ev)
 {
 	if(currentTool)
 	{
-		currentTool.moveUse({x: ev.offsetX, y: ev.offsetY});
+		currentTool.moveUse({x: ev.offsetX, y: ev.offsetY}, ev);
 	}
 }
 
@@ -322,7 +322,7 @@ function onTouchDown(ev)
 		}
 
 		currentTool = new PanTool();
-		currentTool.startUse(p1);
+		currentTool.startUse(p1, ev.targetTouches.item(0));
     }
     else if(ev.targetTouches.length == 2)
     {
@@ -350,7 +350,7 @@ function onTouchMove(ev)
 		var p1 = getTouchPt(ev.targetTouches.item(0));
 		if(currentTool)
 		{
-        	currentTool.moveUse(p1);
+        	currentTool.moveUse(p1, ev.targetTouches.item(0));
 		}
     }
     else if (touchState == 2)
@@ -383,7 +383,7 @@ function onTouchUp(ev)
         }
         touchState = 1;
 		currentTool = new PanTool();
-		currentTool.startUse(p1);
+		currentTool.startUse(p1, ev.targetTouches.item(0));
     }
     else if(ev.targetTouches.length == 2)
     {

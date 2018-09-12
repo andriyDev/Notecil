@@ -41,11 +41,11 @@ class Tool
 
 	// Start using the tool.
 	// pt is the point on the screen
-	startUse(pt) {}
+	startUse(pt, ev) {}
 
 	// Moves the tool to a new location.
 	// pt is the point on the screen.
-	moveUse(pt) {}
+	moveUse(pt, ev) {}
 
 	// Stops using the tool. This is a cleanup function.
 	stopUse() {}
@@ -97,39 +97,39 @@ class PointerTool extends Tool
 		this.pointer = pointer;
 	}
 
-	startPlot()
+	startPlot(pt)
 	{
 		// Nothing to do for the generic pointer tool.
 	}
 
-	adjustPoint(pt)
+	adjustPoint(pt, ev)
 	{
 		// Nothing to do for the generic pointer tool.
 	}
 
-	addPoint(pt)
+	addPoint(pt, ev)
 	{
 		// Nothing to do for the generic pointer tool.
 	}
 
-	endPlot()
+	endPlot(pt)
 	{
 		// Nothing to do for the generic pointer tool.
 	}
 
-	startUse(pt)
+	startUse(pt, ev)
 	{
-		super.startUse(pt);
+		super.startUse(pt, ev);
 		this.lastMousePos = pt;
 		// Get the clicked point in page coordinates.
 		pt = ConvertToPagePoint(pt);
 		// Keep track of the point clicked. This is to detect how far the user has moved.
 		this.drawDist = 0;
 		// Begin the plot.
-		this.startPlot(pt);
+		this.startPlot(pt, ev);
 	}
 
-	moveUse(pt)
+	moveUse(pt, ev)
 	{
 		super.moveUse(pt);
 		// Get the amount the mouse has moved.
@@ -154,13 +154,13 @@ class PointerTool extends Tool
 		{
 			// If so, add the new point.
 			// Add the point.
-			this.addPoint(pt);
+			this.addPoint(pt, ev);
 			// Reset the drawDist.
 			this.drawDist = 0;
 		}
 		else
 		{
-			this.adjustPoint(pt);
+			this.adjustPoint(pt, ev);
 		}
 	}
 
@@ -192,33 +192,34 @@ class BrushTool extends PointerTool
 		super(pointer);
 	}
 
-	startPlot(pt)
+	startPlot(pt, ev)
 	{
-		super.startPlot(pt);
+		super.startPlot(pt, ev);
 		var i = selectedBrush == -1 ? 0: selectedBrush;
 		var b = brushes && brushes.length > i ? brushes[i] : {colour: {r: 0, g: 0, b: 0, a: 1}, width: 5};
 		// Start the path.
-		this.path = {type: TYPE_PATH, colour: b.colour, width: b.width, bounds: {x: pt.x, y: pt.y, x2: pt.x, y2: pt.y, width: 0, height: 0}, data: [{x: pt.x, y: pt.y, r: 1}, {x: pt.x, y: pt.y, r: 1}]};
+		this.path = {type: TYPE_PATH, colour: b.colour, width: b.width, bounds: {x: pt.x, y: pt.y, x2: pt.x, y2: pt.y, width: 0, height: 0}, data: [{x: pt.x, y: pt.y, r: ev.pressure}, {x: pt.x, y: pt.y, r: ev.pressure}]};
 		// Add the path to the render list.
 		page_data.push(this.path);
 		// We don't need to redraw the screen yet until we have at least 2 points.
 	}
 
-	adjustPoint(pt)
+	adjustPoint(pt, ev)
 	{
-		super.adjustPoint(pt);
+		super.adjustPoint(pt, ev);
 		// Adjust the last point.
 		this.path.data[this.path.data.length - 1].x = pt.x;
 		this.path.data[this.path.data.length - 1].y = pt.y;
+		this.path.data[this.path.data.length - 1].r = ev.pressure;
 		// Mark the screen to be redrawn.
 		needsRedraw = true;
 	}
 
-	addPoint(pt)
+	addPoint(pt, ev)
 	{
-		super.addPoint(pt);
+		super.addPoint(pt, ev);
 		// Add the point to the path.
-		this.path.data.push({x: pt.x, y: pt.y, r: 1});
+		this.path.data.push({x: pt.x, y: pt.y, r: ev ? ev.pressure : 0});
 		// Adjust the bounds.
 		includePointInBounds(this.path.bounds, pt);
 		// Mark the screen to be redrawn.
