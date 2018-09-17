@@ -3,6 +3,8 @@ var canvas;
 var cv_viewport;
 var page_data;
 
+var DEBUG_MODE = true;
+
 var needsRedraw = true;
 
 function renderer_init()
@@ -17,26 +19,6 @@ function renderer_init()
     // Start with an empty viewport.
     cv_viewport = {x: 0, y: 0, width: 0, height: 0};
     $(window).resize(resize_canvas);
-	/*
-	page_data.push({type: TYPE_PATH, colour: {r: 0, g: 0, b: 0, a: 1}, width: 10, data: []});
-	var min = undefined;
-	var max = undefined;
-	for(var i = 0; i <= 10; i++)
-	{
-		page_data[0].data.push({x: (i * 2 / 10 - 1) * 100, y: (Math.cos(i / 10 * 2 * Math.PI)) * 100, r: 1});
-		if(i == 0)
-		{
-			min = page_data[0].data[0];
-			max = page_data[0].data[0];
-		}
-		else
-		{
-			min = {x: Math.min(page_data[0].data[i].x, min.x), y: Math.min(page_data[0].data[i].y, min.y)};
-			max = {x: Math.max(page_data[0].data[i].x, min.x), y: Math.max(page_data[0].data[i].y, min.y)};
-		}
-	}
-	page_data[0].bounds = {x: min.x, y: min.y, x2: max.x, y2: max.y, width: max.x - min.x, height: max.y - min.y};
-	*/
 	// Try to redraw the frame every 60 seconds, or about 16 ms.
 	setInterval(redraw_canvas, 16);
 }
@@ -214,6 +196,11 @@ function draw_circle(pt, radius, colour, port, image_data)
 	}
 }
 
+function vec_add(a, b)
+{
+	return {x: a.x + b.x, y: a.y + b.y};
+}
+
 // Fills in the region between two lines.
 // We assume that both lines are in the form {a: {x, y}, b: {x, y}},
 // where a and b are end points of the line and a.y <= b.y
@@ -364,10 +351,29 @@ function draw_path(path, port, image_data)
 			// From here we can use last_pt_l/r and pt_l/r to render a quad.
 			fill_quad([page_to_image_point(spokes.l, port, image_data), page_to_image_point(spokes.r, port, image_data),
 				page_to_image_point(last_pt_r, port, image_data), page_to_image_point(last_pt_l, port, image_data)], path.colour, image_data);
+			// If we're in debug mode, we want to draw the points of each subsegment
+			if(DEBUG_MODE)
+			{
+				fill_quad([page_to_image_point(vec_add(pt, {x: -1, y: -1}), port, image_data), page_to_image_point(vec_add(pt, {x: 1, y: -1}), port, image_data),
+					page_to_image_point(vec_add(pt, {x: 1, y: 1}), port, image_data), page_to_image_point(vec_add(pt, {x: -1, y: 1}), port, image_data)], {r:1,g:0,b:0,a:1}, image_data);
+			}
 
 			// Move the last point to these points so that the next segment draws correctly.
 			last_pt_l = spokes.l;
 			last_pt_r = spokes.r;
+		}
+		// If we are in debug mode, we want to draw the points of each segment and their tangents.
+		if(DEBUG_MODE)
+		{
+			var pt = path.data[i];
+			fill_quad([page_to_image_point(vec_add(pt, {x: -1, y: -1}), port, image_data), page_to_image_point(vec_add(pt, {x: 1, y: -1}), port, image_data),
+				page_to_image_point(vec_add(pt, {x: 1, y: 1}), port, image_data), page_to_image_point(vec_add(pt, {x: -1, y: 1}), port, image_data)], {r:0,g:1,b:0,a:1}, image_data);
+			pt = vec_add(path.data[i - 1], scale(slopes[i - 1], 0.1));
+			fill_quad([page_to_image_point(vec_add(pt, {x: -1, y: -1}), port, image_data), page_to_image_point(vec_add(pt, {x: 1, y: -1}), port, image_data),
+				page_to_image_point(vec_add(pt, {x: 1, y: 1}), port, image_data), page_to_image_point(vec_add(pt, {x: -1, y: 1}), port, image_data)], {r:0,g:0,b:1,a:1}, image_data);
+			pt = vec_add(path.data[i], {x: -slopes[i].x * 0.1, y: -slopes[i].y * 0.1});
+			fill_quad([page_to_image_point(vec_add(pt, {x: -1, y: -1}), port, image_data), page_to_image_point(vec_add(pt, {x: 1, y: -1}), port, image_data),
+				page_to_image_point(vec_add(pt, {x: 1, y: 1}), port, image_data), page_to_image_point(vec_add(pt, {x: -1, y: 1}), port, image_data)], {r:0,g:1,b:1,a:1}, image_data);
 		}
 	}
 

@@ -2,7 +2,7 @@
 // === Constants ===
 
 // How much should the path be smoothed. This means how much is the path allowed to deviate from the drawn points.
-const plotSmoothingRatio = 1/3;
+const plotSmoothingRatio = 0.3;
 
 // === State ===
 
