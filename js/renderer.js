@@ -171,33 +171,6 @@ function blend_pixel(image_data, colour, pos)
 	image_data.data[ind + 3] = Math.round(new_alpha * 255);
 }
 
-function draw_circle(pt, radius, colour, port, image_data)
-{
-	var coords = {x: Math.round((pt.x - port.x) * image_data.width / port.width),
-				y: Math.round((pt.y - port.y) * image_data.height / port.height)};
-	var r = Math.round(radius * image_data.width / port.width);
-	// Loop through a square around coords with radius r to draw a circle.
-	for(var y = Math.max(coords.y - r, 0); y < Math.min(coords.y + r, image_data.height); y++)
-	{
-		for(var x = Math.max(coords.x - r, 0); x < Math.min(coords.x + r, image_data.width); x++)
-		{
-			var d = Math.sqrt(x * x + y * y);
-			if(d - r <= 0)
-			{
-				// If we are within the circle, blend the colour.
-				blend_pixel(image_data, colour, {x: x, y: y});
-			}
-			else if(d - r < 1)
-			{
-				// If we are just on the edge of the circle, we want to set the pixel to be smoothed based
-				// on the subpixel distance.
-				var adjusted_colour = {r: colour.r, g: colour.g, b: colour.b, a: colour.a * (d-r)};
-				blend_pixel(image_data, adjusted_colour, {x: x, y: y});
-			}
-		}
-	}
-}
-
 function vec_add(a, b)
 {
 	return {x: a.x + b.x, y: a.y + b.y};
