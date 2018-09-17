@@ -76,6 +76,8 @@ class PanTool extends Tool
 		// Use the delta to adjust the viewport.
 		cv_viewport.x -= deltaPan.x;
 		cv_viewport.y -= deltaPan.y;
+		cv_viewport.x2 -= deltaPan.x;
+		cv_viewport.y2 -= deltaPan.y;
 		needsRedraw = true;
 	}
 

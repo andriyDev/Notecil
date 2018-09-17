@@ -64,7 +64,7 @@ function brush_col_changed()
 function brush_width_changed()
 {
 	var t = $(this);
-	var val = t.val();
+	var val = Number.parseFloat(t.val());
 	$('#brush_width').val(val);
 	$('#brush_width_val').val(val);
 	if(selectedPaths)

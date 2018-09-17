@@ -17,7 +17,7 @@ function renderer_init()
     canvas.width = 0;
     canvas.height = 0;
     // Start with an empty viewport.
-    cv_viewport = {x: 0, y: 0, width: 0, height: 0};
+    cv_viewport = {x: 0, y: 0, width: 0, height: 0, x2: 0, y2: 0};
     $(window).resize(resize_canvas);
 	// Try to redraw the frame every 60 seconds, or about 16 ms.
 	setInterval(redraw_canvas, 16);
@@ -43,7 +43,7 @@ function resize_canvas()
 		}
 		canvas.width = r.width;
 		canvas.height = r.height;
-		cv_viewport = {x: 0, y: 0, width: r.width, height: r.height};
+		cv_viewport = {x: 0, y: 0, width: r.width, height: r.height, x2: r.width, y2: r.height};
 		redraw_canvas();
 		return;
 	}
@@ -71,6 +71,8 @@ function resize_canvas()
 		// Make the widths match.
 		cv_viewport.width += adj_w;
 	}
+	cv_viewport.x2 = cv_viewport.x + cv_viewport.width;
+	cv_viewport.y2 = cv_viewport.y + cv_viewport.height;
 
 	// Set the new canvas size.
     canvas.width = r.width;
@@ -281,7 +283,72 @@ function compute_spokes(pt, tang, r)
 	return {l: pt_l, r: pt_r};
 }
 
-const PATH_DRAW_SAMPLES_PER_UNIT = 0.06;
+function compute_bezier(p0, p1, p2, p3, t, omt)
+{
+	return p0 * omt * omt * omt + 3 * p1 * omt * omt * t + 3 * p2 * omt * t * t + p3 * t * t * t;
+}
+
+// Given a one-dimensional bezier curve, get the bounds in that dimension.
+// For use with multiple dimensions, simply provide one dimension of the points at a time (x, then y)
+// The bounds are expanded by width to ensure that the bezier is completely encompassed.
+function bezier_bounds(p0, p1, p2, p3, width)
+{
+	// This computes the coefficients of the derivative of the bezier curve.
+	// We will use this to compute the zeroes to get the maxima.
+	let a = -p0 + 3 * p1 - 3 * p2 + p3;
+	let b = 2 * p0 - 4 * p1 + 2 * p2;
+	let c = p1 - p0;
+
+	// Compute the discriminant.
+	let d = b*b - 4*a*c;
+	// If there are no maxima or minima, just return the end points.
+	if(d < 0 || a == 0)
+	{
+		return {min: Math.min(p0, p3) - width, max: Math.max(p0, p3) + width};
+	}
+	// Square root the discriminant so we don't need to recompute it.
+	d = Math.sqrt(d);
+	// Compute the "time" of the critical points by solving the quadrating equation.
+	let crit1 = (-b + d) / (2*a);
+	let crit2 = (-b - d) / (2*a);
+	// Use the "time" of the critical points to compute the critical points themselves..
+	if(crit1 >= 0 && crit1 <= 1)
+	{
+		crit1 = compute_bezier(p0, p1, p2, p3, crit1, 1 - crit1);
+	}
+	else
+	{
+		crit1 = undefined;
+	}
+	if(crit2 >= 0 && crit2 <= 1)
+	{
+		crit2 = compute_bezier(p0, p1, p2, p3, crit2, 1 - crit2);
+	}
+	else
+	{
+		crit2 = undefined;
+	}
+
+	// Start by just using the end points as the bounds.
+	let m = Math.min(p0, p3);
+	let M = Math.max(p0, p3);
+	// If the critical point is valid, ensure it is included in the bounds.
+	if(crit1)
+	{
+		m = Math.min(m, crit1);
+		M = Math.max(M, crit1);
+	}
+	// If the critical point is valid, ensure it is included in the bounds.
+	if(crit2)
+	{
+		m = Math.min(m, crit2);
+		M = Math.max(M, crit2);
+	}
+	// Return the bounds.
+	return {min: m - width, max: M + width};
+}
+
+const PATH_DRAW_SAMPLES_PER_UNIT = 0.03;
 
 function draw_path(path, port, image_data)
 {
@@ -324,6 +391,21 @@ function draw_path(path, port, image_data)
 		// Get the absolute tangents.
 		var c1 = {x: slopes[i - 1].x + path.data[i - 1].x, y: slopes[i - 1].y + path.data[i - 1].y};
 		var c2 = {x: path.data[i].x - slopes[i].x, y: path.data[i].y - slopes[i].y};
+		// Compute the bounds of the bezier curve.
+		var h_bounds = bezier_bounds(path.data[i-1].x, c1.x, c2.x, path.data[i].x, path.width);
+		var v_bounds = bezier_bounds(path.data[i-1].y, c1.y, c2.y, path.data[i].y, path.width);
+		var bounds = {x: h_bounds.min, y: v_bounds.min, x2: h_bounds.max, y2: v_bounds.max,
+						width: h_bounds.max - h_bounds.min, height: v_bounds.max - v_bounds.min};
+		// If we can't see the bounds of the curve, no need to draw it.
+		if(!doBoundsIntersect(port, bounds))
+		{
+			// We still need to move the last_pt to the end of this segment so that the next step doesn't need to compute it.
+			let start_tang = {x: 3 * slopes[i].x, y: 3 * slopes[i].y};
+			let spokes = compute_spokes(path.data[i], start_tang, path.data[i].r * path.width);
+			last_pt_l = spokes.l;
+			last_pt_r = spokes.r;
+			continue;
+		}
 
 		// We want the number of samples to be dependent on the length of the segment and the screen.
 		var p1 = page_to_image_point(path.data[i - 1], port, image_data);
@@ -339,8 +421,8 @@ function draw_path(path, port, image_data)
 			var t = j / samples;
 			var omt = 1 - t;
 			// Compute the bezier curve.
-			var pt = {x: path.data[i - 1].x * omt * omt * omt + 3 * c1.x * omt * omt * t + 3 * c2.x * omt * t * t + path.data[i].x * t * t * t,
-					y: path.data[i - 1].y * omt * omt * omt + 3 * c1.y * omt * omt * t + 3 * c2.y * omt * t * t + path.data[i].y * t * t * t};
+			var pt = {x: compute_bezier(path.data[i - 1].x, c1.x, c2.x, path.data[i].x, t, omt),
+					y: compute_bezier(path.data[i - 1].y, c1.y, c2.y, path.data[i].y, t, omt)};
 			// Compute the tangent of the bezier curve (at least the derivative).
 			var tang = {x: 3 * omt * omt * slopes[i - 1].x + 6 * omt * t * (c2.x - c1.x) + 3 * t * t * slopes[i].x,
 						y: 3 * omt * omt * slopes[i - 1].y + 6 * omt * t * (c2.y - c1.y) + 3 * t * t * slopes[i].y};
