@@ -321,7 +321,7 @@ function bezier_bounds(p0, p1, p2, p3, width)
 	return {min: m - width, max: M + width};
 }
 
-const PATH_DRAW_SAMPLES_PER_UNIT = 0.03;
+const PATH_DRAW_SAMPLES_PER_UNIT = .06;
 
 function draw_path(path, port, image_data)
 {
