@@ -25,15 +25,15 @@ function context_deleteSection()
 			{
 				openPage(-1);
 			}
-			var sec = GetSectionPath(id);
+			let sec = GetSectionPath(id);
 			if(deletePages)
 			{
 				// Load the page list for this section.
 				fs.readFile(sec, function(err, data){
 					if(err) throw err;
 					// Get the page list.
-					var pages = JSON.parse(data);
-					for(var i = 0; i < pages.length; i++)
+					let pages = JSON.parse(data);
+					for(let i = 0; i < pages.length; i++)
 					{
 						// Delete each file.
 						fs.unlink(path.join(rootList[id].path, pages[i].file + ".ncb"),

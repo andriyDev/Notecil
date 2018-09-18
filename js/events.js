@@ -33,7 +33,7 @@ function brush_click(ev)
 function brush_context()
 {
 	hide_context_menus();
-	var t = $(this);
+	let t = $(this);
 	select_brush(parseInt(this.id.substring(5)));
 	$('#brush_popup').toggleClass('hidden').css({top: t.offset().top + t.height(), left: "" + t.offset().left});
 	if(brushes && selectedBrush != -1)
@@ -46,11 +46,11 @@ function brush_context()
 
 function brush_col_changed()
 {
-	var t = $(this);
-	var val = t.val();
+	let t = $(this);
+	let val = t.val();
 	if(selectedPaths)
 	{
-		for(var i = 0; i < selectedPaths.length; i++)
+		for(let i = 0; i < selectedPaths.length; i++)
 		{
 			selectedPaths[i].attr('stroke', val);
 		}
@@ -63,13 +63,13 @@ function brush_col_changed()
 
 function brush_width_changed()
 {
-	var t = $(this);
-	var val = Number.parseFloat(t.val());
+	let t = $(this);
+	let val = Number.parseFloat(t.val());
 	$('#brush_width').val(val);
 	$('#brush_width_val').val(val);
 	if(selectedPaths)
 	{
-		for(var i = 0; i < selectedPaths.length; i++)
+		for(let i = 0; i < selectedPaths.length; i++)
 		{
 			selectedPaths[i].attr('stroke-width', val);
 		}
@@ -113,9 +113,9 @@ function regenBrushList()
 	{
 		return;
 	}
-	for(var i = 0; i < brushes.length; i++)
+	for(let i = 0; i < brushes.length; i++)
 	{
-		var b = $('<div id="brush' + i + '" class="divBtn tool' + (selectedBrush == i ? ' selected_tool' : '') + '"></div>');
+		let b = $('<div id="brush' + i + '" class="divBtn tool' + (selectedBrush == i ? ' selected_tool' : '') + '"></div>');
 		$('#tool_brush_list').append(b);
 
 		b.on("click", brush_click);

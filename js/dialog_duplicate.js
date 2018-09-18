@@ -8,14 +8,14 @@ function OpenDuplicateDialog(target, callback)
 	duplicateTarget = target;
 	duplicateCallback = callback;
 	// If we have many copies, we want to increment the copy number.
-	var name = target.name;
-	var name_copyRegex = new RegExp(" Copy[0-9]*$");
-	var name_match = name_copyRegex.exec(target.name);
+	let name = target.name;
+	let name_copyRegex = new RegExp(" Copy[0-9]*$");
+	let name_match = name_copyRegex.exec(target.name);
 	// Is this ending in a copy number?
 	if(name_match)
 	{
 		// Get just the number.
-		var num = name_match.substring(5);
+		let num = name_match.substring(5);
 		// If the number is empty, then that counts as 1.
 		if(num == "")
 		{
@@ -71,4 +71,3 @@ function dialog_duplicate_init()
 	$('#duplicate_cancel').on("click", duplicate_cancel);
 	$('#duplicate_advanced').on("click", duplicate_advanced);
 }
-

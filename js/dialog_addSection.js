@@ -12,7 +12,7 @@ function addSection()
 
 function selectPath()
 {
-	var paths = electron.remote.dialog.showOpenDialog(electron.remote.getCurrentWindow(), {properties: ['openDirectory']});
+	let paths = electron.remote.dialog.showOpenDialog(electron.remote.getCurrentWindow(), {properties: ['openDirectory']});
 	if(paths && paths.length > 0)
 	{
 		return paths[0];
@@ -37,7 +37,7 @@ function reverseTruncate(str, maxlen)
 
 function addSection_selectPath()
 {
-	var path = selectPath();
+	let path = selectPath();
 	if(path)
 	{
 		$('#addSection_path').attr("value", path).text(reverseTruncate(path, 30));
@@ -47,7 +47,7 @@ function addSection_selectPath()
 
 function addSection_ok(ev)
 {
-	var btn = $('#addSection_ok');
+	let btn = $('#addSection_ok');
 	if(btn.prop('disabled'))
 	{
 		return;

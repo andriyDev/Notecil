@@ -78,17 +78,17 @@ function GetSectionPath(ind)
 
 function GetValidPageName()
 {
-	var files = fs.readdirSync(rootList[selectedSection].path);
-	var currentPages = {};
-	for(var i = 0; i < files.length; i++)
+	let files = fs.readdirSync(rootList[selectedSection].path);
+	let currentPages = {};
+	for(let i = 0; i < files.length; i++)
 	{
-		var f = path.parse(files[i]);
+		let f = path.parse(files[i]);
 		if(f.ext == ".ncb")
 		{
 			currentPages[f.name] = true;
 		}
 	}
-	var fn;
+	let fn;
 	do {
 		fn = "Page" + (Math.floor(Math.random() * 10000) + 1);
 	} while (currentPages[fn]);
@@ -146,18 +146,18 @@ function ExportPage()
 	var file_data = "";
 	fs.readFile(GetPagePath(PageButtonToData(context_target)), {encoding: null}, (err, data) => {
 		if (err) throw err;
-		var paths = data.readUInt32BE(0);
+		let paths = data.readUInt32BE(0);
 		// This will be our byte index.
-		var totalBox;
-		var b = 4;
-		for(var i = 0; i < paths; i++)
+		let totalBox;
+		let b = 4;
+		for(let i = 0; i < paths; i++)
 		{
 			// Read the path len.
-			var path_len = data.readUInt32BE(b);
+			let path_len = data.readUInt32BE(b);
 			b += 4;
 			// Allocate an array with <path_len> elements.
-			var plot = new Array(path_len);
-			for(var j = 0; j < path_len; j++)
+			let plot = new Array(path_len);
+			for(let j = 0; j < path_len; j++)
 			{
 				// Get the x, y coordinates.
 				plot[j] = {x: data.readFloatBE(b), y: data.readFloatBE(b + 4)};
@@ -191,7 +191,7 @@ function ExportPage()
 
 function context_deletePage()
 {
-	var id = parseInt(context_target.id.substring(4));
+	let id = parseInt(context_target.id.substring(4));
 	if(openedPageInd.section == selectedSection)
 	{
 		if(openedPageInd.page == id)
@@ -215,7 +215,7 @@ function context_deletePage()
 function MoveSection(tgt, amt)
 {
 	// When we click on a section, we must first get the index of the section.
-	var i = parseInt(tgt.id.substring(7));
+	let i = parseInt(tgt.id.substring(7));
 	// We want to make sure we never leave the bounds, so if amt would take us out, limit amt.
 	if(i + amt < 0)
 	{
@@ -227,8 +227,8 @@ function MoveSection(tgt, amt)
 		amt = rootList.length - i - 1;
 	}
 	// Perform the swap.
-	var swapInd = i + amt;
-	var tmp = rootList[swapInd];
+	let swapInd = i + amt;
+	let tmp = rootList[swapInd];
 	rootList[swapInd] = rootList[i];
 	rootList[i] = tmp;
 
@@ -265,7 +265,7 @@ function MoveSection(tgt, amt)
 function MovePage(tgt, amt)
 {
 	// When we click on a section, we must first get the index of the section.
-	var i = parseInt(tgt.id.substring(4));
+	let i = parseInt(tgt.id.substring(4));
 	// We want to make sure we never leave the bounds, so if amt would take us out, limit amt.
 	if(i + amt < 0)
 	{
@@ -276,8 +276,8 @@ function MovePage(tgt, amt)
 	{
 		amt = pageList.length - i - 1;
 	}
-	var swapInd = i + amt;
-	var tmp = pageList[swapInd];
+	let swapInd = i + amt;
+	let tmp = pageList[swapInd];
 	pageList[swapInd] = pageList[i];
 	pageList[i] = tmp;
 
@@ -305,7 +305,7 @@ function MovePage(tgt, amt)
 function clickedSection(ev)
 {
 	// When we click on a section, we must first get the index of the section.
-	var i = parseInt(this.id.substring(7));
+	let i = parseInt(this.id.substring(7));
 	// Select the new section.
 	selectSection(i);
 }
@@ -314,7 +314,7 @@ function openSectionContext(ev)
 {
 	context_target = this;
 	ev.preventDefault();
-	var context = Menu.buildFromTemplate(section_context_template);
+	let context = Menu.buildFromTemplate(section_context_template);
 	context.popup(electron.remote.getCurrentWindow());
 }
 
@@ -338,7 +338,7 @@ function selectSection(i)
 
 function readSelectedSection(callback)
 {
-	var sec = GetSectionPath(selectedSection);
+	let sec = GetSectionPath(selectedSection);
 	// Load the page list for this section.
 	fs.readFile(sec, function(err, data){
 		if(err)
@@ -356,7 +356,7 @@ function readSelectedSection(callback)
 
 function clickedPage(ev)
 {
-	var i = parseInt(this.id.substring(4));
+	let i = parseInt(this.id.substring(4));
 	$('.file_elem').removeClass('selected_file');
 	$(this).addClass('selected_file');
 	openPage(i);
@@ -366,7 +366,7 @@ function openPageContext(ev)
 {
 	context_target = this;
 	ev.preventDefault();
-	var context = Menu.buildFromTemplate(page_context_template);
+	let context = Menu.buildFromTemplate(page_context_template);
 	context.popup(electron.remote.getCurrentWindow());
 }
 
@@ -414,7 +414,7 @@ function isPathSelection(path)
 	{
 		return false;
 	}
-	for(var i = 0; i < selectionPaths.length; i++)
+	for(let i = 0; i < selectionPaths.length; i++)
 	{
 		if(path == selectionPaths[i].node)
 		{
@@ -444,8 +444,8 @@ function hextonum(hex)
 function numtohex(num)
 {
 	// Big and little components of num.
-	var b = Math.floor(num / 16);
-	var l = num % 16;
+	let b = Math.floor(num / 16);
+	let l = num % 16;
 	if(b > 9)
 	{
 		b += 55;
@@ -468,14 +468,14 @@ function numtohex(num)
 
 function savePage()
 {
-	var paths = $('#doc').children().children().filter("path").toArray();
+	let paths = $('#doc').children().children().filter("path").toArray();
 
 	// We start with a single buffer that will hold the number of paths.
-	var buffers = [Buffer.alloc(4)];
+	let buffers = [Buffer.alloc(4)];
 	// Keep track of how many bytes are allocated in total.
-	var tl = 4;
-	var pathsAdded = 0;
-	for(var i = 0; i < paths.length; i++)
+	let tl = 4;
+	let pathsAdded = 0;
+	for(let i = 0; i < paths.length; i++)
 	{
 		// Make sure the path is not part of the selection ui.
 		if(isPathSelection(paths[i]))
@@ -485,14 +485,14 @@ function savePage()
 		// Increment the number of paths in the file.
 		pathsAdded++;
 		// Get the plot.
-		var path_data = extractPlotFromPath(SVG.adopt(paths[i]));
+		let path_data = extractPlotFromPath(SVG.adopt(paths[i]));
 		// Allocate the number of bytes required for the length and then bytes enough for the plot.
-		var buf = Buffer.alloc(11 + path_data.length * 8);
+		let buf = Buffer.alloc(11 + path_data.length * 8);
 		// Write the path length.
 		buf.writeUInt32BE(path_data.length, 0);
 		// Get both colour and width from the path.
-		var col = $(paths[i]).attr("stroke");
-		var width = $(paths[i]).attr("stroke-width");
+		let col = $(paths[i]).attr("stroke");
+		let width = $(paths[i]).attr("stroke-width");
 		// Convert col to an array of 8-bit rgb components.
 		col = [hextonum(col.substring(1, 2)) * 16 + hextonum(col.substring(2, 3)),
 			hextonum(col.substring(3, 4)) * 16 + hextonum(col.substring(4, 5)),
@@ -504,8 +504,8 @@ function savePage()
 		buf.writeUInt8(col[2], 6);
 		// Write the width of the path.
 		buf.writeFloatBE(width, 7);
-		var b = 11;
-		for(var j = 0; j < path_data.length; j++)
+		let b = 11;
+		for(let j = 0; j < path_data.length; j++)
 		{
 			// For each point in the plot, write both the x and y coordinates.
 			buf.writeFloatBE(path_data[j].x, b);
@@ -530,25 +530,25 @@ function reloadPage()
 	$('#doc').children().empty();
 	fs.readFile(openedPage, {encoding: null}, (err, data) => {
 		if (err) throw err;
-		var paths = data.readUInt32BE(0);
+		let paths = data.readUInt32BE(0);
 		// This will be our byte index.
-		var b = 4;
-		for(var i = 0; i < paths; i++)
+		let b = 4;
+		for(let i = 0; i < paths; i++)
 		{
 			// Read the path len.
-			var path_len = data.readUInt32BE(b);
+			let path_len = data.readUInt32BE(b);
 			// Read in all 3 bytes of the colour.
-			var col = "#";
+			let col = "#";
 			col += numtohex(data.readUInt8(b + 4));
 			col += numtohex(data.readUInt8(b + 5));
 			col += numtohex(data.readUInt8(b + 6));
 			// Read in the width of the path.
-			var width = data.readFloatBE(b + 7);
+			let width = data.readFloatBE(b + 7);
 
 			b += 11;
 			// Allocate an array with <path_len> elements.
-			var plot = new Array(path_len);
-			for(var j = 0; j < path_len; j++)
+			let plot = new Array(path_len);
+			for(let j = 0; j < path_len; j++)
 			{
 				plot[j] = {x: data.readFloatBE(b), y: data.readFloatBE(b + 4)};
 				b += 8;
@@ -561,13 +561,13 @@ function reloadPage()
 function regenSections()
 {
 	// Start by clearing out the list first.
-	var list = $('#sections_list');
+	let list = $('#sections_list');
 	list.empty();
 
-	for(var i = 0; i < rootList.length; i++)
+	for(let i = 0; i < rootList.length; i++)
 	{
 		// Create a section button for each element in the rootList.
-		var section = $('<div id="section' + i + '" class="divBtn section_elem" value="' + rootList[i].path + '"><div class="elem_text fixTextOverflow">' + rootList[i].name + '</div></div>');
+		let section = $('<div id="section' + i + '" class="divBtn section_elem" value="' + rootList[i].path + '"><div class="elem_text fixTextOverflow">' + rootList[i].name + '</div></div>');
 		list.append(section);
 		// Add the event listener for the click.
 		section.on("click", clickedSection);
@@ -584,7 +584,7 @@ function regenSections()
 function regenPages()
 {
 	// Get the page list and clear it so we can regenerate it.
-	var pages = $('#files_list');
+	let pages = $('#files_list');
 	pages.empty();
 
 	if(selectedSection == -1)
@@ -593,9 +593,9 @@ function regenPages()
 		return;
 	}
 
-	for(var i = 0; i < pageList.length; i++)
+	for(let i = 0; i < pageList.length; i++)
 	{
-		var new_page = $('<div id="page' + i + '" class="divBtn file_elem"><div class="elem_text fixTextOverflow">' + pageList[i].name + '</div></div>');
+		let new_page = $('<div id="page' + i + '" class="divBtn file_elem"><div class="elem_text fixTextOverflow">' + pageList[i].name + '</div></div>');
 		pages.append(new_page);
 		new_page.on("click", clickedPage);
 		new_page.on("contextmenu", openPageContext);

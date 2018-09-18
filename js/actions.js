@@ -69,9 +69,9 @@ class PanTool extends Tool
 	{
 		super.moveUse(pt);
 		// Get the clicked point in page coordinates.
-		var panEnd = ConvertToPagePoint(pt);
+		let panEnd = ConvertToPagePoint(pt);
 		// Get how much the pan moved.
-		var deltaPan = {x: panEnd.x - this.startPt.x, y: panEnd.y - this.startPt.y};
+		let deltaPan = {x: panEnd.x - this.startPt.x, y: panEnd.y - this.startPt.y};
 
 		// Use the delta to adjust the viewport.
 		cv_viewport.x -= deltaPan.x;
@@ -135,7 +135,7 @@ class PointerTool extends Tool
 	{
 		super.moveUse(pt);
 		// Get the amount the mouse has moved.
-		var delta = {x: pt.x - this.lastMousePos.x, y: pt.y - this.lastMousePos.y};
+		let delta = {x: pt.x - this.lastMousePos.x, y: pt.y - this.lastMousePos.y};
 
 		// Sometimes my pen flys across the screen for no reason, so to counter this,
 		// I limit the amount the pointer can move.
@@ -171,7 +171,7 @@ class PointerTool extends Tool
 		super.stopUse();
 
 		// Calculate the clicked point in page coordinates.
-		var pt = ConvertToPagePoint(this.lastMousePos);
+		pt = ConvertToPagePoint(this.lastMousePos);
 		// End the plot.
 		this.endPlot(pt);
 		// Clear everything.
@@ -197,8 +197,8 @@ class BrushTool extends PointerTool
 	startPlot(pt, ev)
 	{
 		super.startPlot(pt, ev);
-		var i = selectedBrush == -1 ? 0: selectedBrush;
-		var b = brushes && brushes.length > i ? brushes[i] : {colour: {r: 0, g: 0, b: 0, a: 1}, width: 5};
+		let i = selectedBrush == -1 ? 0: selectedBrush;
+		let b = brushes && brushes.length > i ? brushes[i] : {colour: {r: 0, g: 0, b: 0, a: 1}, width: 5};
 		// Start the path.
 		this.path = {type: TYPE_PATH, colour: b.colour, width: b.width, bounds: {x: pt.x, y: pt.y, x2: pt.x, y2: pt.y, width: 0, height: 0}, data: [{x: pt.x, y: pt.y, r: ev.pressure}, {x: pt.x, y: pt.y, r: ev.pressure}]};
 		// Add the path to the render list.
@@ -238,10 +238,10 @@ class BrushTool extends PointerTool
 // http://geomalgorithms.com/a03-_inclusion.html
 function GetWindingNumber(polygon, point)
 {
-	var winding = 0;
+	let winding = 0;
 
 	// Since the last point is equal to the first, we can ignore it.
-	for(var i = 0; i < polygon.length - 1; i++)
+	for(let i = 0; i < polygon.length - 1; i++)
 	{
 		// If both points of the edge are to the left of the point, then there is no way to intersect a
 		// ray moving to the right.
@@ -250,15 +250,15 @@ function GetWindingNumber(polygon, point)
 			continue;
 		}
 		// Get position relative to the point for each edge point.
-		var diff = (polygon[i].y - point.y);
-		var diff_next = (polygon[i + 1].y - point.y);
+		let diff = (polygon[i].y - point.y);
+		let diff_next = (polygon[i + 1].y - point.y);
 
 		// If one point is above and one is below (one positive, one negative),
 		// or a point is intersected (equals 0), then this will effect the winding number.
 		if(diff * diff_next <= 0)
 		{
 			// Compute the direction the edge is going (up or down).
-			var edge_dir = (polygon[i + 1].y - polygon[i].y);
+			let edge_dir = (polygon[i + 1].y - polygon[i].y);
 			// Here we assume that the edge is not going perfectly horizontal.
 			// If it is, we treat it as an edge going up.
 			if(edge_dir <= 0)
@@ -294,7 +294,7 @@ class SelectTool extends PointerTool
 		// If we did have a selection, make sure to clear the ui.
 		if(selectionPaths)
 		{
-			for(var i = 0; i < selectionPaths.length; i++)
+			for(let i = 0; i < selectionPaths.length; i++)
 			{
 				selectionPaths[i].remove();
 			}
@@ -338,11 +338,11 @@ class SelectTool extends PointerTool
 		// Get rid of the selection ghost.
 		this.drawPath.remove();
 
-		var bounds = undefined;
-		var paths = doc_display.children();
-		for(var i = 0; i < paths.length; i++)
+		let bounds = undefined;
+		let paths = doc_display.children();
+		for(let i = 0; i < paths.length; i++)
 		{
-			var bbox = paths[i].bbox();
+			let bbox = paths[i].bbox();
 			// If the bounding boxes do not intersect, then don't bother calculating it.
 			if(this.min_pt.x > bbox.x2 || this.min_pt.y > bbox.y2 &&
 				this.max_pt.x < bbox.x || this.max_pt.y < bbox.y)
@@ -351,9 +351,9 @@ class SelectTool extends PointerTool
 			}
 
 			// Get the points in the plot.
-			var pathPlot = extractPlotFromPath(paths[i]);
-			var pointsInSelect = 0;
-			for(var j = 0; j < pathPlot.length; j++)
+			let pathPlot = extractPlotFromPath(paths[i]);
+			let pointsInSelect = 0;
+			for(let j = 0; j < pathPlot.length; j++)
 			{
 				// Get the winding number of each point and make sure it is positive.
 				if(GetWindingNumber(this.plot, pathPlot[j]) > 0)
@@ -365,7 +365,7 @@ class SelectTool extends PointerTool
 					if(pointsInSelect / pathPlot.length >= SelectTool.percentToSelect)
 					{
 						// Add a path to underline the selected path.
-						var select_path = doc_display.path(GetPlotStr(pathPlot)).attr({fill: "none", stroke: "#909090", "stroke-opacity": 0.5, "stroke-width": paths[i].attr("stroke-width") * (1 + SelectTool.selectWidth)});
+						let select_path = doc_display.path(GetPlotStr(pathPlot)).attr({fill: "none", stroke: "#909090", "stroke-opacity": 0.5, "stroke-width": paths[i].attr("stroke-width") * (1 + SelectTool.selectWidth)});
 						select_path.after(paths[i]);
 						selectionPaths.push(select_path);
 						// Add the path to the selection.
@@ -373,7 +373,7 @@ class SelectTool extends PointerTool
 						selectedPlots.push(pathPlot);
 						// Adjust the bounding box to include the stroke width
 						// We divide by two since stroke-width means the "diameter" of the line.
-						var stroke_width = paths[i].attr("stroke-width") / 2;
+						let stroke_width = paths[i].attr("stroke-width") / 2;
 						bbox.x -= stroke_width;
 						bbox.y -= stroke_width;
 						bbox.width += 2 * stroke_width;
@@ -431,9 +431,9 @@ function doBoundsIntersect(a, b)
 
 function getLineVals(a, b)
 {
-	var delta = {x: b.x - a.x, y: b.y - a.y};
-	var slope = delta.x == 0 ? Infinity : delta.y / delta.x;
-	var b = slope == Infinity ? a.x : a.y - slope * a.x;
+	let delta = {x: b.x - a.x, y: b.y - a.y};
+	let slope = delta.x == 0 ? Infinity : delta.y / delta.x;
+	let b = slope == Infinity ? a.x : a.y - slope * a.x;
 	return {m: slope, b: b};
 }
 
@@ -443,8 +443,8 @@ function computeIntersectionOfLines(l1, l2)
 	{
 		return;
 	}
-	var x = (l2.b - l1.b) / (l1.m - l2.m);
-	var y = l1.m * x + l1.b;
+	let x = (l2.b - l1.b) / (l1.m - l2.m);
+	let y = l1.m * x + l1.b;
 	return {x: x, y: y};
 }
 
@@ -468,23 +468,23 @@ class EraseTool extends PointerTool
 
 	addPoint(pt)
 	{
-		var erase_bounds = extractBounds(pt, this.lastPt);
-		var eraseLine = getLineVals(this.lastPt, pt);
-		var paths = doc_display.children();
-		for(var i = 0; i < paths.length; i++)
+		let erase_bounds = extractBounds(pt, this.lastPt);
+		let eraseLine = getLineVals(this.lastPt, pt);
+		let paths = doc_display.children();
+		for(let i = 0; i < paths.length; i++)
 		{
-			var bbox = paths[i].bbox();
+			let bbox = paths[i].bbox();
 			// If the bounding boxes do not intersect, then don't bother calculating it.
 			if(!doBoundsIntersect(erase_bounds, bbox))
 			{
 				continue;
 			}
 			// TODO: Somehow make this not run incredibly slowly.
-			var plot = extractPlotFromPath(paths[i]);
-			for(var j = 0; j < plot.length - 1; j++)
+			let plot = extractPlotFromPath(paths[i]);
+			for(let j = 0; j < plot.length - 1; j++)
 			{
 				// Test bounds since that can exclude many points.
-				var line_bounds = extractBounds(plot[j], plot[j + 1]);
+				let line_bounds = extractBounds(plot[j], plot[j + 1]);
 				if(!doBoundsIntersect(erase_bounds, line_bounds))
 				{
 					// Skip line if bounds do not intersect erase bounds.
@@ -604,7 +604,7 @@ class ScaleSelectionTool extends Tool
 		super.moveUse(pt);
 		pt = ConvertToPagePoint(pt);
 		var delta = {x: pt.x - this.startPos.x, y: pt.y - this.startPos.y};
-		var tl_diff = {x: 0, y: 0};
+		let tl_diff = {x: 0, y: 0};
 
 		// Find out how the width/height should change, and how the top left should change
 		// based on the direction of dragging.
@@ -643,12 +643,12 @@ class ScaleSelectionTool extends Tool
 				delta.y = 0;
 				break;
 		}
-		var bbox = boundsRect.bbox();
-		for(var i = 0; i < selectedPaths.length; i++)
+		let bbox = boundsRect.bbox();
+		for(let i = 0; i < selectedPaths.length; i++)
 		{
-			for(var p = 0; p < selectedPlots[i].length; p++)
+			for(let p = 0; p < selectedPlots[i].length; p++)
 			{
-				var plotpt = selectedPlots[i][p];
+				let plotpt = selectedPlots[i][p];
 				// Make it relative to the bounding box.
 				plotpt.x -= bbox.cx;
 				plotpt.y -= bbox.cy;
@@ -659,7 +659,7 @@ class ScaleSelectionTool extends Tool
 				plotpt.x += (bbox.x + tl_diff.x) + (bbox.w + delta.x) * 0.5;
 				plotpt.y += (bbox.y + tl_diff.y) + (bbox.h + delta.y) * 0.5;
 			}
-			var plotStr = GetPlotStr(selectedPlots[i])
+			let plotStr = GetPlotStr(selectedPlots[i])
 			selectedPaths[i].plot(plotStr);
 			selectionPaths[i].plot(plotStr);
 		}
@@ -694,12 +694,12 @@ class MoveSelectionTool extends Tool
 		if(boundsRect)
 		{
 			// Get the dom position of the bounds
-			var bbox = boundsRect.rbox();
+			let bbox = boundsRect.rbox();
 			// Compute the difference between each edge.
-			var diff_left = pt.x - bbox.x;
-			var diff_top = pt.y - bbox.y;
-			var diff_right = pt.x - bbox.x2;
-			var diff_bot = pt.y - bbox.y2;
+			let diff_left = pt.x - bbox.x;
+			let diff_top = pt.y - bbox.y;
+			let diff_right = pt.x - bbox.x2;
+			let diff_bot = pt.y - bbox.y2;
 			// Are we inside the bounds?
 			if(diff_left >= 0 && diff_left >= 0 && diff_bot < 0 && diff_right < 0)
 			{
@@ -721,19 +721,19 @@ class MoveSelectionTool extends Tool
 	{
 		super.moveUse(pt);
 		pt = ConvertToPagePoint(pt);
-		var delta = {x: pt.x - this.startPos.x, y: pt.y - this.startPos.y};
+		let delta = {x: pt.x - this.startPos.x, y: pt.y - this.startPos.y};
 
-		var bbox = boundsRect.bbox();
-		for(var i = 0; i < selectedPaths.length; i++)
+		let bbox = boundsRect.bbox();
+		for(let i = 0; i < selectedPaths.length; i++)
 		{
-			for(var p = 0; p < selectedPlots[i].length; p++)
+			for(let p = 0; p < selectedPlots[i].length; p++)
 			{
-				var plotpt = selectedPlots[i][p];
+				let plotpt = selectedPlots[i][p];
 				// Add the delta.
 				plotpt.x += delta.x;
 				plotpt.y += delta.y;
 			}
-			var plotStr = GetPlotStr(selectedPlots[i])
+			let plotStr = GetPlotStr(selectedPlots[i])
 			selectedPaths[i].plot(plotStr);
 			selectionPaths[i].plot(plotStr);
 		}
@@ -754,9 +754,9 @@ class MoveSelectionTool extends Tool
 function extractPlotFromPath(path)
 {
 	// Get the array.
-	var arr = path.array().value;
-	var re = [];
-	for(var i = 0; i < arr.length; i++)
+	let arr = path.array().value;
+	let re = [];
+	for(let i = 0; i < arr.length; i++)
 	{
 		// We have to make sure that this was a path generated from our code.
 		// So it must begin with an M, and then all remaining commands must be C.
@@ -805,7 +805,7 @@ function GetPlotStr(plot)
 		return "";
 	}
 	// We know we have at least 1 point to operate on, so we can start the string.
-	var str = "M" + plot[0].x + " " + plot[0].y;
+	let str = "M" + plot[0].x + " " + plot[0].y;
 	// If there's no more points, then just return.
 	if(plot.length == 1)
 	{
@@ -815,22 +815,22 @@ function GetPlotStr(plot)
 
 	// For each "middle" point (non-end points), we want to compute their slopes.
 	// We compute the first point's slope.
-	var slopes = [scale(getDelta(plot[0], plot[1]), plotSmoothingRatio)];
+	let slopes = [scale(getDelta(plot[0], plot[1]), plotSmoothingRatio)];
 	// This is based on a blog post by François Romain
 	// Src: https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
 	// To be clear, this implementation is significantly streamlined. Only the core ideas are still present.
-	for(var i = 1; i < plot.length - 1; i++)
+	for(let i = 1; i < plot.length - 1; i++)
 	{
 		slopes.push(scale(getDelta(plot[i - 1], plot[i + 1]), plotSmoothingRatio));
 	}
 	// We also must not forget to compute the last point's slope.
 	slopes.push(scale(getDelta(plot[plot.length - 2], plot[plot.length - 1]), plotSmoothingRatio));
 	// Now that we have the slopes, we can use those to generate our bezier command.
-	for(var i = 1; i < plot.length; i++)
+	for(let i = 1; i < plot.length; i++)
 	{
 		// Get the absolute tangents.
-		var c1 = {x: slopes[i - 1].x + plot[i - 1].x, y: slopes[i - 1].y + plot[i - 1].y};
-		var c2 = {x: plot[i].x - slopes[i].x, y: plot[i].y - slopes[i].y};
+		let c1 = {x: slopes[i - 1].x + plot[i - 1].x, y: slopes[i - 1].y + plot[i - 1].y};
+		let c2 = {x: plot[i].x - slopes[i].x, y: plot[i].y - slopes[i].y};
 		// Make the command.
 		str += "C" + c1.x + " " + c1.y + " " + c2.x + " " + c2.y + " " + plot[i].x + " " + plot[i].y;
 	}
@@ -864,21 +864,21 @@ function movePinch(pt1, pt2)
 	// TODO: Make this better. Currently, no matter where you pinch on, the screen just zooms in to the center.
 	// The screen SHOULD zoom in to the point that is being pinched on.
 
-    var previousCenter = {x: (initialPinchPoints.a.x + initialPinchPoints.b.x) * 0.5, y: (initialPinchPoints.a.y + initialPinchPoints.b.y) * 0.5};
-    var previousDelta = {x: initialPinchPoints.b.x - initialPinchPoints.a.x, y: initialPinchPoints.b.y - initialPinchPoints.a.y};
-    var previousDist = Math.sqrt(previousDelta.x * previousDelta.x + previousDelta.y * previousDelta.y);
-    var center = {x: (pt1.x + pt2.x) * 0.5, y: (pt1.y + pt2.y) * 0.5};
-    var delta = {x: pt2.x - pt1.x, y: pt2.y - pt1.y};
-    var dist = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
+    let previousCenter = {x: (initialPinchPoints.a.x + initialPinchPoints.b.x) * 0.5, y: (initialPinchPoints.a.y + initialPinchPoints.b.y) * 0.5};
+    let previousDelta = {x: initialPinchPoints.b.x - initialPinchPoints.a.x, y: initialPinchPoints.b.y - initialPinchPoints.a.y};
+    let previousDist = Math.sqrt(previousDelta.x * previousDelta.x + previousDelta.y * previousDelta.y);
+    let center = {x: (pt1.x + pt2.x) * 0.5, y: (pt1.y + pt2.y) * 0.5};
+    let delta = {x: pt2.x - pt1.x, y: pt2.y - pt1.y};
+    let dist = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
 
     previousCenter = ConvertToPagePoint(previousCenter);
     center = ConvertToPagePoint(center);
 
-    var centerDelta = {x: center.x - previousCenter.x, y: center.y - previousCenter.y};
+    let centerDelta = {x: center.x - previousCenter.x, y: center.y - previousCenter.y};
 
-    var v = {x: initialPinchBox.x, y: initialPinchBox.y, width: initialPinchBox.width, height: initialPinchBox.height};
-    var vc = {x: v.x + v.width * 0.5, y: v.y + v.height * 0.5};
-    var ve = {x: v.width * 0.5, y: v.height * 0.5};
+    let v = {x: initialPinchBox.x, y: initialPinchBox.y, width: initialPinchBox.width, height: initialPinchBox.height};
+    let vc = {x: v.x + v.width * 0.5, y: v.y + v.height * 0.5};
+    let ve = {x: v.width * 0.5, y: v.height * 0.5};
 
     vc.x -= centerDelta.x;
     vc.y -= centerDelta.y;

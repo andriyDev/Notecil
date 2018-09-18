@@ -31,7 +31,7 @@ function ConvertToPagePoint(clientPt)
 
 function resize_canvas()
 {
-    var r = $('#doc').get(0).getBoundingClientRect();
+    let r = $('#doc').get(0).getBoundingClientRect();
 
 	needsRedraw = true;
 
@@ -49,14 +49,14 @@ function resize_canvas()
 	}
 
 	// Compute the amount that each direction needs to scale to match the new size.
-	var sf_width = r.width / canvas.width;
-	var sf_height = r.height / canvas.height;
+	let sf_width = r.width / canvas.width;
+	let sf_height = r.height / canvas.height;
 	// We want to make sure the viewport is still entirely visible in the canvas.
 	// So we want to scale the direction that has the higher scaling amount.
 	if(sf_width < sf_height)
 	{
 		// Find out how much the viewport must change to match the scale factor.
-		var adj_h = cv_viewport.height * (sf_height - 1);
+		let adj_h = cv_viewport.height * (sf_height - 1);
 		// Move the viewport up.
 		cv_viewport.y -= adj_h * 0.5;
 		// Make the heights match.
@@ -65,7 +65,7 @@ function resize_canvas()
 	else
 	{
 		// Find out how much the viewport must change to match the scale factor.
-		var adj_w = cv_viewport.width * (sf_width - 1);
+		let adj_w = cv_viewport.width * (sf_width - 1);
 		// Move the viewport left.
 		cv_viewport.x -= adj_w * 0.5;
 		// Make the widths match.
@@ -89,8 +89,8 @@ function redraw_canvas()
 		return;
 	}
 	needsRedraw = false;
-	var ctx = canvas.getContext('2d');
-	var image_data = draw_chunk(cv_viewport);
+	let ctx = canvas.getContext('2d');
+	let image_data = draw_chunk(cv_viewport);
 	if(image_data)
 	{
 		ctx.putImageData(image_data, 0, 0);
@@ -104,7 +104,7 @@ const TYPE_PATH = 0;
 
 function draw_chunk(port)
 {
-	var min = Math.min(port.width, port.height);
+	let min = Math.min(port.width, port.height);
 	// We know the width and height will always be >= 0
 	// If either is 0, we have an invalid chunk, so don't bother drawing.
 	if(min == 0)
@@ -114,9 +114,9 @@ function draw_chunk(port)
 	// Create the chunk image data. We also scale the "chunk_pixel_width" so that the minimum side length will
 	// always be "chunk_pixel_width" pixels long.
 	// var data = new ImageData(chunk_pixel_width * port.width / min, chunk_pixel_width * port.height / min);
-	var data = new ImageData(canvas.width, canvas.height);
+	let data = new ImageData(canvas.width, canvas.height);
 	// Go through all elements in the page.
-	for(var i = 0; i < page_data.length; i++)
+	for(let i = 0; i < page_data.length; i++)
 	{
 		// No need to draw anything if the bounds don't intersect.
 		if(!doBoundsIntersect(port, page_data[i].bounds))
@@ -136,7 +136,7 @@ function draw_chunk(port)
 
 function set_pixel(image_data, colour, pos)
 {
-	var ind = (pos.x + pos.y * image_data.width) * 4;
+	let ind = (pos.x + pos.y * image_data.width) * 4;
 	image_data.data[ind] = Math.round(colour.r * 255);
 	image_data.data[ind + 1] = Math.round(colour.g * 255);
 	image_data.data[ind + 2] = Math.round(colour.b * 255);
@@ -152,9 +152,9 @@ function blend_pixel(image_data, colour, pos)
 		return;
 	}
 	// Compute the index and the alphas.
-	var ind = (pos.x + pos.y * image_data.width) * 4;
-	var dst_alpha = image_data.data[ind + 3] / 255;
-	var new_alpha = colour.a + dst_alpha * (1 - colour.a);
+	let ind = (pos.x + pos.y * image_data.width) * 4;
+	let dst_alpha = image_data.data[ind + 3] / 255;
+	let new_alpha = colour.a + dst_alpha * (1 - colour.a);
 	// If the new alpha is 0, just turn the pixel transparent-black
 	if(new_alpha == 0)
 	{
@@ -184,24 +184,24 @@ function vec_add(a, b)
 function fill_between_lines(l1, l2, colour, image_data)
 {
 	// We only want to fill in the region where both lines are on the same horizontal line.
-	var min_y = Math.max(Math.ceil(Math.max(l1.a.y, l2.a.y)), 0);
-	var max_y = Math.min(Math.ceil(Math.min(l1.b.y, l2.b.y)), image_data.height);
-	var inv_slope_l1 = (l1.b.x - l1.a.x) / (l1.b.y - l1.a.y);
-	var inv_slope_l2 = (l2.b.x - l2.a.x) / (l2.b.y - l2.a.y);
+	let min_y = Math.max(Math.ceil(Math.max(l1.a.y, l2.a.y)), 0);
+	let max_y = Math.min(Math.ceil(Math.min(l1.b.y, l2.b.y)), image_data.height);
+	let inv_slope_l1 = (l1.b.x - l1.a.x) / (l1.b.y - l1.a.y);
+	let inv_slope_l2 = (l2.b.x - l2.a.x) / (l2.b.y - l2.a.y);
 	// If the lines are strictly horizontal, just ignore it.
 	if(l1.b.y - l1.a.y <= Number.EPSILON || l2.b.y - l2.a.y <= Number.EPSILON)
 	{
 		return;
 	}
-	var l1_x = l1.a.x + (min_y - l1.a.y) * inv_slope_l1;
-	var l2_x = l2.a.x + (min_y - l2.a.y) * inv_slope_l2;
-	for(var y = min_y; y < max_y; y++)
+	let l1_x = l1.a.x + (min_y - l1.a.y) * inv_slope_l1;
+	let l2_x = l2.a.x + (min_y - l2.a.y) * inv_slope_l2;
+	for(let y = min_y; y < max_y; y++)
 	{
 		// We don't want to assume the relative position of lines.
 		// Instead we just always start at the left-most line point and end at the right-most.
-		var start_x = Math.min(Math.round(l1_x), Math.round(l2_x));
-		var end_x = Math.max(Math.round(l1_x), Math.round(l2_x));
-		for(var x = Math.max(start_x, 0); x < end_x && x < image_data.width; x++)
+		let start_x = Math.min(Math.round(l1_x), Math.round(l2_x));
+		let end_x = Math.max(Math.round(l1_x), Math.round(l2_x));
+		for(let x = Math.max(start_x, 0); x < end_x && x < image_data.width; x++)
 		{
 			// TODO: Perform some "antialiasing"
 			blend_pixel(image_data, colour, {x: x, y: y});
@@ -215,13 +215,12 @@ function fill_between_lines(l1, l2, colour, image_data)
 //  This assumes that the quad's points are ordered going clockwise.
 function fill_quad(pts, colour, image_data)
 {
-	var tmp;
 	// We need all 4 lines to draw the quad.
 	// Create each line, then ensure the order of the points is correct.
-	var l1 = {a: pts[0], b: pts[1]}; if(l1.b.y < l1.a.y) { tmp = l1.a; l1.a = l1.b; l1.b = tmp; }
-	var l2 = {a: pts[0], b: pts[3]}; if(l2.b.y < l2.a.y) { tmp = l2.a; l2.a = l2.b; l2.b = tmp; }
-	var l3 = {a: pts[1], b: pts[2]}; if(l3.b.y < l3.a.y) { tmp = l3.a; l3.a = l3.b; l3.b = tmp; }
-	var l4 = {a: pts[3], b: pts[2]}; if(l4.b.y < l4.a.y) { tmp = l4.a; l4.a = l4.b; l4.b = tmp; }
+	let l1 = {a: pts[0], b: pts[1]}; if(l1.b.y < l1.a.y) { tmp = l1.a; l1.a = l1.b; l1.b = tmp; }
+	let l2 = {a: pts[0], b: pts[3]}; if(l2.b.y < l2.a.y) { tmp = l2.a; l2.a = l2.b; l2.b = tmp; }
+	let l3 = {a: pts[1], b: pts[2]}; if(l3.b.y < l3.a.y) { tmp = l3.a; l3.a = l3.b; l3.b = tmp; }
+	let l4 = {a: pts[3], b: pts[2]}; if(l4.b.y < l4.a.y) { tmp = l4.a; l4.a = l4.b; l4.b = tmp; }
 	// Fill between the "top-left" lines
 	fill_between_lines(l1, l2, colour, image_data);
 	// Fill between the "bottom-right" lines
@@ -239,7 +238,7 @@ function fill_quad(pts, colour, image_data)
 // Converts a point on the page to a point on the canvas.
 function page_to_image_point(page_point, viewport, image_data)
 {
-	var rel = {x: page_point.x - viewport.x, y: page_point.y - viewport.y};
+	let rel = {x: page_point.x - viewport.x, y: page_point.y - viewport.y};
 	rel.x *= image_data.width / viewport.width;
 	rel.y *= image_data.height / viewport.height;
 	return rel;
@@ -247,12 +246,12 @@ function page_to_image_point(page_point, viewport, image_data)
 
 function compute_spokes(pt, tang, r)
 {
-	var tang_l = Math.sqrt(tang.x * tang.x + tang.y * tang.y);
+	let tang_l = Math.sqrt(tang.x * tang.x + tang.y * tang.y);
 	// Rotate 90 degrees left and normalize to get a normal.
-	var norm = {x: -tang.y / tang_l, y: tang.x / tang_l};
+	let norm = {x: -tang.y / tang_l, y: tang.x / tang_l};
 	// Compute these points.
-	var pt_l = {x: pt.x + norm.x * r, y: pt.y + norm.y * r};
-	var pt_r = {x: pt.x - norm.x * r, y: pt.y - norm.y * r};
+	let pt_l = {x: pt.x + norm.x * r, y: pt.y + norm.y * r};
+	let pt_r = {x: pt.x - norm.x * r, y: pt.y - norm.y * r};
 	return {l: pt_l, r: pt_r};
 }
 
@@ -337,11 +336,11 @@ function draw_path(path, port, image_data)
 
 	// For each "middle" point (non-end points), we want to compute their slopes.
 	// We compute the first point's slope.
-	var slopes = [scale(getDelta(path.data[0], path.data[1]), plotSmoothingRatio)];
+	let slopes = [scale(getDelta(path.data[0], path.data[1]), plotSmoothingRatio)];
 	// This is based on a blog post by François Romain
 	// Src: https://medium.com/@francoisromain/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74
 	// To be clear, this implementation is significantly streamlined. Only the core ideas are still present.
-	for(var i = 1; i < path.data.length - 1; i++)
+	for(let i = 1; i < path.data.length - 1; i++)
 	{
 		slopes.push(scale(getDelta(path.data[i - 1], path.data[i + 1]), plotSmoothingRatio));
 	}
@@ -349,8 +348,8 @@ function draw_path(path, port, image_data)
 	slopes.push(scale(getDelta(path.data[path.data.length - 2], path.data[path.data.length - 1]), plotSmoothingRatio));
 
 	// Compute the left and right spokes of the first point.
-	var last_pt_l;
-	var last_pt_r;
+	let last_pt_l;
+	let last_pt_r;
 	// Keep it scoped.
 	{
 		let start_tang = {x: 3 * slopes[0].x, y: 3 * slopes[0].y};
@@ -359,15 +358,15 @@ function draw_path(path, port, image_data)
 		last_pt_r = spokes.r;
 	}
 	// Start at the first segment
-	for(var i = 1; i < path.data.length; i++)
+	for(let i = 1; i < path.data.length; i++)
 	{
 		// Get the absolute tangents.
-		var c1 = {x: slopes[i - 1].x + path.data[i - 1].x, y: slopes[i - 1].y + path.data[i - 1].y};
-		var c2 = {x: path.data[i].x - slopes[i].x, y: path.data[i].y - slopes[i].y};
+		let c1 = {x: slopes[i - 1].x + path.data[i - 1].x, y: slopes[i - 1].y + path.data[i - 1].y};
+		let c2 = {x: path.data[i].x - slopes[i].x, y: path.data[i].y - slopes[i].y};
 		// Compute the bounds of the bezier curve.
-		var h_bounds = bezier_bounds(path.data[i-1].x, c1.x, c2.x, path.data[i].x, path.width);
-		var v_bounds = bezier_bounds(path.data[i-1].y, c1.y, c2.y, path.data[i].y, path.width);
-		var bounds = {x: h_bounds.min, y: v_bounds.min, x2: h_bounds.max, y2: v_bounds.max,
+		let h_bounds = bezier_bounds(path.data[i-1].x, c1.x, c2.x, path.data[i].x, path.width);
+		let v_bounds = bezier_bounds(path.data[i-1].y, c1.y, c2.y, path.data[i].y, path.width);
+		let bounds = {x: h_bounds.min, y: v_bounds.min, x2: h_bounds.max, y2: v_bounds.max,
 						width: h_bounds.max - h_bounds.min, height: v_bounds.max - v_bounds.min};
 		// If we can't see the bounds of the curve, no need to draw it.
 		if(!doBoundsIntersect(port, bounds))
@@ -381,28 +380,28 @@ function draw_path(path, port, image_data)
 		}
 
 		// We want the number of samples to be dependent on the length of the segment and the screen.
-		var p1 = page_to_image_point(path.data[i - 1], port, image_data);
-		var p2 = page_to_image_point(path.data[i], port, image_data);
+		let p1 = page_to_image_point(path.data[i - 1], port, image_data);
+		let p2 = page_to_image_point(path.data[i], port, image_data);
 		// This is a rough approximation, we simply use linear distance and hope that makes a nice sample count.
-		var delta = {x: p2.x - p1.x, y: p2.y - p1.y};
-		var samples = Math.ceil(Math.sqrt(delta.x * delta.x + delta.y * delta.y) * PATH_DRAW_SAMPLES_PER_UNIT);
+		let delta = {x: p2.x - p1.x, y: p2.y - p1.y};
+		let samples = Math.ceil(Math.sqrt(delta.x * delta.x + delta.y * delta.y) * PATH_DRAW_SAMPLES_PER_UNIT);
 		// We start from 1 since the first point should already be computed
 		// We also include j == samples since we want to end on t = 1.
-		for(var j = 1; j <= samples; j++)
+		for(let j = 1; j <= samples; j++)
 		{
 			// Compute the normalized distance between the two points.
-			var t = j / samples;
-			var omt = 1 - t;
+			let t = j / samples;
+			let omt = 1 - t;
 			// Compute the bezier curve.
-			var pt = {x: compute_bezier(path.data[i - 1].x, c1.x, c2.x, path.data[i].x, t, omt),
+			let pt = {x: compute_bezier(path.data[i - 1].x, c1.x, c2.x, path.data[i].x, t, omt),
 					y: compute_bezier(path.data[i - 1].y, c1.y, c2.y, path.data[i].y, t, omt)};
 			// Compute the tangent of the bezier curve (at least the derivative).
-			var tang = {x: 3 * omt * omt * slopes[i - 1].x + 6 * omt * t * (c2.x - c1.x) + 3 * t * t * slopes[i].x,
+			let tang = {x: 3 * omt * omt * slopes[i - 1].x + 6 * omt * t * (c2.x - c1.x) + 3 * t * t * slopes[i].x,
 						y: 3 * omt * omt * slopes[i - 1].y + 6 * omt * t * (c2.y - c1.y) + 3 * t * t * slopes[i].y};
 
 			// Linearly interpolate to find the radius of this point in the line.
-			var r_pix = (path.data[i - 1].r * omt + path.data[i].r * t) * path.width;
-			var spokes = compute_spokes(pt, tang, r_pix);
+			let r_pix = (path.data[i - 1].r * omt + path.data[i].r * t) * path.width;
+			let spokes = compute_spokes(pt, tang, r_pix);
 			// From here we can use last_pt_l/r and pt_l/r to render a quad.
 			fill_quad([page_to_image_point(spokes.l, port, image_data), page_to_image_point(spokes.r, port, image_data),
 				page_to_image_point(last_pt_r, port, image_data), page_to_image_point(last_pt_l, port, image_data)], path.colour, image_data);
@@ -420,7 +419,7 @@ function draw_path(path, port, image_data)
 		// If we are in debug mode, we want to draw the points of each segment and their tangents.
 		if(DEBUG_MODE)
 		{
-			var pt = path.data[i];
+			let pt = path.data[i];
 			fill_quad([page_to_image_point(vec_add(pt, {x: -1, y: -1}), port, image_data), page_to_image_point(vec_add(pt, {x: 1, y: -1}), port, image_data),
 				page_to_image_point(vec_add(pt, {x: 1, y: 1}), port, image_data), page_to_image_point(vec_add(pt, {x: -1, y: 1}), port, image_data)], {r:0,g:1,b:0,a:1}, image_data);
 			pt = vec_add(path.data[i - 1], scale(slopes[i - 1], 0.1));

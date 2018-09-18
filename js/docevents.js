@@ -144,12 +144,12 @@ function chooseMouseCursor(pt)
 		return;
 	}
 	// Get the dom position of the bounds
-	var bbox = boundsRect.rbox();
+	let bbox = boundsRect.rbox();
 	// Compute the difference between each edge.
-	var diff_left = pt.x - bbox.x;
-	var diff_top = pt.y - bbox.y;
-	var diff_right = pt.x - bbox.x2;
-	var diff_bot = pt.y - bbox.y2;
+	let diff_left = pt.x - bbox.x;
+	let diff_top = pt.y - bbox.y;
+	let diff_right = pt.x - bbox.x2;
+	let diff_bot = pt.y - bbox.y2;
 	// If we are within the corner distance for the top-left
 	if(Math.abs(diff_left) < ScaleSelectionTool.maxCornerOffset
 		&& Math.abs(diff_top) < ScaleSelectionTool.maxCornerOffset)
@@ -304,7 +304,7 @@ function onTouchDown(ev)
     // We need to figure out what kind of gesture is being done.
     if(ev.targetTouches.length == 1)
     {
-		var p1 = getTouchPt(ev.targetTouches.item(0));
+		let p1 = getTouchPt(ev.targetTouches.item(0));
         touchState = 1;
         // If there is only one touch on the screen, that means we need to start panning/manipulating the selection.
 		currentTool = new ScaleSelectionTool();
@@ -326,8 +326,8 @@ function onTouchDown(ev)
     }
     else if(ev.targetTouches.length == 2)
     {
-		var p1 = getTouchPt(ev.targetTouches.item(0));
-		var p2 = getTouchPt(ev.targetTouches.item(1));
+		let p1 = getTouchPt(ev.targetTouches.item(0));
+		let p2 = getTouchPt(ev.targetTouches.item(1));
         touchState = 2;
 		// If there are 2 touches, we need to start pinching.
         startPinch(p1, p2);
@@ -347,7 +347,7 @@ function onTouchMove(ev)
 {
     if(touchState == 1)
     {
-		var p1 = getTouchPt(ev.targetTouches.item(0));
+		let p1 = getTouchPt(ev.targetTouches.item(0));
 		if(currentTool)
 		{
         	currentTool.moveUse(p1, ev.targetTouches.item(0));
@@ -355,8 +355,8 @@ function onTouchMove(ev)
     }
     else if (touchState == 2)
     {
-		var p1 = getTouchPt(ev.targetTouches.item(0));
-		var p2 = getTouchPt(ev.targetTouches.item(1));
+		let p1 = getTouchPt(ev.targetTouches.item(0));
+		let p2 = getTouchPt(ev.targetTouches.item(1));
         movePinch(p1, p2);
     }
 }
@@ -376,7 +376,7 @@ function onTouchUp(ev)
     }
     else if(ev.targetTouches.length == 1)
     {
-		var p1 = getTouchPt(ev.targetTouches.item(0));
+		let p1 = getTouchPt(ev.targetTouches.item(0));
         if(touchState == 2)
         {
             stopPinch();
@@ -387,8 +387,8 @@ function onTouchUp(ev)
     }
     else if(ev.targetTouches.length == 2)
     {
-		var p1 = getTouchPt(ev.targetTouches.item(0));
-		var p2 = getTouchPt(ev.targetTouches.item(1));
+		let p1 = getTouchPt(ev.targetTouches.item(0));
+		let p2 = getTouchPt(ev.targetTouches.item(1));
         touchState = 2;
         startPinch(p1, p2);
     }
@@ -400,9 +400,9 @@ const zoomSpeed = 0.0035;
 function zoom(ev)
 {
 	// Get viewbox properties.
-	var v = doc_display.viewbox();
-    var vc = {x: v.x + v.width * 0.5, y: v.y + v.height * 0.5};
-    var ve = {x: v.width * 0.5, y: v.height * 0.5};
+	let v = doc_display.viewbox();
+    let vc = {x: v.x + v.width * 0.5, y: v.y + v.height * 0.5};
+    let ve = {x: v.width * 0.5, y: v.height * 0.5};
 
 	// Zoom! We use pow so that negative numbers undo the positive versions.
     ve.x *= Math.pow(2, zoomSpeed * ev.deltaY);

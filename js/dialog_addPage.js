@@ -12,13 +12,13 @@ function addPage()
 
 function addPage_ok()
 {
-	var filename = $('#addPage_file').val();
+	let filename = $('#addPage_file').val();
 	pageList.push({name: $('#addPage_name').val(), file: filename});
-	var file = GetPagePath(pageList.length - 1);
+	let file = GetPagePath(pageList.length - 1);
 	fs.access(file, fs.constants.F_OK, (err) => {
 		if (err)
 		{
-			var buf = Buffer.alloc(4);
+			let buf = Buffer.alloc(4);
 			buf.writeUInt32BE(0, 0);
 			fs.writeFileSync(file, buf);
 		}
