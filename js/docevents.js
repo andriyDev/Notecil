@@ -401,20 +401,23 @@ function zoom(ev)
 {
 	// Get viewbox properties.
 	let v = cv_viewport;
-    let vc = {x: v.x + v.width * 0.5, y: v.y + v.height * 0.5};
-    let ve = {x: v.width * 0.5, y: v.height * 0.5};
+	let vc = ConvertToPagePoint({x: ev.offsetX, y: ev.offsetY});
+    let ve = {l: v.x - vc.x, u: v.y - vc.y, r: v.x2 - vc.x, d: v.y2 - vc.y};
 
 	// Zoom! We use pow so that negative numbers undo the positive versions.
-    ve.x *= Math.pow(2, zoomSpeed * ev.deltaY);
-    ve.y *= Math.pow(2, zoomSpeed * ev.deltaY);
+	let zoomFactor = Math.pow(2, zoomSpeed * ev.deltaY);
+    ve.l *= zoomFactor;
+	ve.u *= zoomFactor;
+	ve.r *= zoomFactor;
+	ve.d *= zoomFactor;
 
 	// Recompute viewbox
-    v.x = vc.x - ve.x;
-    v.y = vc.y - ve.y;
-    v.width = ve.x * 2;
-    v.height = ve.y * 2;
-	v.x2 = v.x + v.width;
-	v.y2 = v.y + v.height;
+    v.x = vc.x + ve.l;
+    v.y = vc.y + ve.u;
+	v.x2 = vc.x + ve.r;
+	v.y2 = vc.y + ve.d;
+	v.width = v.x2 - v.x;
+	v.height = v.y2 - v.y;
 
 	needsRedraw = true;
 }
