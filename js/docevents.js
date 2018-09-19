@@ -400,7 +400,7 @@ const zoomSpeed = 0.0035;
 function zoom(ev)
 {
 	// Get viewbox properties.
-	let v = doc_display.viewbox();
+	let v = cv_viewport;
     let vc = {x: v.x + v.width * 0.5, y: v.y + v.height * 0.5};
     let ve = {x: v.width * 0.5, y: v.height * 0.5};
 
@@ -413,9 +413,10 @@ function zoom(ev)
     v.y = vc.y - ve.y;
     v.width = ve.x * 2;
     v.height = ve.y * 2;
+	v.x2 = v.x + v.width;
+	v.y2 = v.y + v.height;
 
-	// Apply viewbox.
-    doc_display.viewbox(v);
+	needsRedraw = true;
 }
 
 function docevents_init()
