@@ -200,8 +200,8 @@ function fill_between_lines(l1, l2, colour, image_data)
 		// We don't want to assume the relative position of lines.
 		// Instead we just always start at the left-most line point and end at the right-most.
 		let start_x = Math.min(Math.round(l1_x), Math.round(l2_x));
-		let end_x = Math.max(Math.round(l1_x), Math.round(l2_x));
-		for(let x = Math.max(start_x, 0); x < end_x && x < image_data.width; x++)
+		let end_x = Math.min(Math.max(Math.round(l1_x), Math.round(l2_x)), image_data.width);
+		for(let x = Math.max(start_x, 0); x < end_x; x++)
 		{
 			// TODO: Perform some "antialiasing"
 			blend_pixel(image_data, colour, {x: x, y: y});
