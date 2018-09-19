@@ -320,7 +320,26 @@ function bezier_bounds(p0, p1, p2, p3, width)
 	return {min: m - width, max: M + width};
 }
 
-const PATH_DRAW_SAMPLES_PER_UNIT = .06;
+function bezier_length_upper(p0, p1, p2, p3)
+{
+	let len;
+	let delta = {x: p1.x - p0.x, y: p1.y - p0.y};
+	len = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
+	delta = {x: p2.x - p1.x, y: p2.y - p1.y};
+	len += Math.sqrt(delta.x * delta.x + delta.y * delta.y);
+	delta = {x: p3.x - p2.x, y: p3.y - p2.y};
+	len += Math.sqrt(delta.x * delta.x + delta.y * delta.y);
+	return len;
+}
+
+function sigmoid(x, amp, speed)
+{
+	return amp / (1 + Math.exp(-10 * speed * x + 2));
+}
+
+const PATH_DRAW_SAMPLES_PER_UNIT = .0006;
+const PATH_DRAW_MAX_SAMPLES = 10;
+const PATH_DRAW_MIN_SAMPLES = 1;
 
 function draw_path(path, port, image_data)
 {
@@ -383,8 +402,8 @@ function draw_path(path, port, image_data)
 		let p1 = page_to_image_point(path.data[i - 1], port, image_data);
 		let p2 = page_to_image_point(path.data[i], port, image_data);
 		// This is a rough approximation, we simply use linear distance and hope that makes a nice sample count.
-		let delta = {x: p2.x - p1.x, y: p2.y - p1.y};
-		let samples = Math.ceil(Math.sqrt(delta.x * delta.x + delta.y * delta.y) * PATH_DRAW_SAMPLES_PER_UNIT);
+		let b_len = bezier_length_upper(p1, page_to_image_point(c1, port, image_data), page_to_image_point(c2, port, image_data), p2);
+		let samples = Math.ceil(sigmoid(b_len, PATH_DRAW_MAX_SAMPLES - PATH_DRAW_MIN_SAMPLES, PATH_DRAW_SAMPLES_PER_UNIT)) + PATH_DRAW_MIN_SAMPLES;
 		// We start from 1 since the first point should already be computed
 		// We also include j == samples since we want to end on t = 1.
 		for(let j = 1; j <= samples; j++)
