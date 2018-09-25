@@ -408,64 +408,6 @@ function openPage(ind)
 	}
 }
 
-function isPathSelection(path)
-{
-	if(!selectionPaths)
-	{
-		return false;
-	}
-	for(let i = 0; i < selectionPaths.length; i++)
-	{
-		if(path == selectionPaths[i].node)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-function hextonum(hex)
-{
-	hex = hex.charCodeAt(0);
-	if(hex - 48 >= 0 && hex - 48 <= 9)
-	{
-		return hex - 48;
-	}
-	else if(hex - 65 >= 0 && hex - 65 <= 5)
-	{
-		return hex - 55;
-	}
-	else
-	{
-		return hex - 87;
-	}
-}
-
-function numtohex(num)
-{
-	// Big and little components of num.
-	let b = Math.floor(num / 16);
-	let l = num % 16;
-	if(b > 9)
-	{
-		b += 55;
-	}
-	else
-	{
-		b += 48;
-	}
-	if(l > 9)
-	{
-		l += 55;
-	}
-	else
-	{
-		l += 48;
-	}
-
-	return "" + String.fromCharCode(b) + String.fromCharCode(l);
-}
-
 function savePage()
 {
 	let paths = page_data;
@@ -477,11 +419,6 @@ function savePage()
 	let pathsAdded = 0;
 	for(let i = 0; i < paths.length; i++)
 	{
-		// Make sure the path is not part of the selection ui.
-		if(isPathSelection(paths[i]))
-		{
-			continue;
-		}
 		// Increment the number of paths in the file.
 		pathsAdded++;
 		// Get the plot.
