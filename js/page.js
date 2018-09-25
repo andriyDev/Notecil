@@ -468,7 +468,7 @@ function numtohex(num)
 
 function savePage()
 {
-	let paths = $('#doc').children().children().filter("path").toArray();
+	let paths = page_data;
 
 	// We start with a single buffer that will hold the number of paths.
 	let buffers = [Buffer.alloc(4)];
@@ -485,23 +485,18 @@ function savePage()
 		// Increment the number of paths in the file.
 		pathsAdded++;
 		// Get the plot.
-		let path_data = extractPlotFromPath(SVG.adopt(paths[i]));
+		let path_data = paths[i].data;
 		// Allocate the number of bytes required for the length and then bytes enough for the plot.
-		let buf = Buffer.alloc(11 + path_data.length * 8);
+		let buf = Buffer.alloc(11 + path_data.length * 12);
 		// Write the path length.
 		buf.writeUInt32BE(path_data.length, 0);
 		// Get both colour and width from the path.
-		let col = $(paths[i]).attr("stroke");
-		let width = $(paths[i]).attr("stroke-width");
-		// Convert col to an array of 8-bit rgb components.
-		col = [hextonum(col.substring(1, 2)) * 16 + hextonum(col.substring(2, 3)),
-			hextonum(col.substring(3, 4)) * 16 + hextonum(col.substring(4, 5)),
-			hextonum(col.substring(5, 6)) * 16 + hextonum(col.substring(6, 7))
-		];
+		let col = paths[i].colour;
+		let width = paths[i].width;
 		// Write all 3 components.
-		buf.writeUInt8(col[0], 4);
-		buf.writeUInt8(col[1], 5);
-		buf.writeUInt8(col[2], 6);
+		buf.writeUInt8(Math.round(col.r * 255), 4);
+		buf.writeUInt8(Math.round(col.g * 255), 5);
+		buf.writeUInt8(Math.round(col.b * 255), 6);
 		// Write the width of the path.
 		buf.writeFloatBE(width, 7);
 		let b = 11;
@@ -510,7 +505,8 @@ function savePage()
 			// For each point in the plot, write both the x and y coordinates.
 			buf.writeFloatBE(path_data[j].x, b);
 			buf.writeFloatBE(path_data[j].y, b + 4);
-			b += 8;
+			buf.writeFloatBE(path_data[j].r, b + 8);
+			b += 12;
 		}
 		// Add the buffer to the buffers that need to be written.
 		buffers.push(buf);
@@ -527,7 +523,7 @@ function savePage()
 
 function reloadPage()
 {
-	$('#doc').children().empty();
+	page_data = [];
 	fs.readFile(openedPage, {encoding: null}, (err, data) => {
 		if (err) throw err;
 		let paths = data.readUInt32BE(0);
@@ -538,23 +534,38 @@ function reloadPage()
 			// Read the path len.
 			let path_len = data.readUInt32BE(b);
 			// Read in all 3 bytes of the colour.
-			let col = "#";
-			col += numtohex(data.readUInt8(b + 4));
-			col += numtohex(data.readUInt8(b + 5));
-			col += numtohex(data.readUInt8(b + 6));
+			let col = {r: data.readUInt8(b + 4) / 255., g: data.readUInt8(b + 5) / 255.,
+						b: data.readUInt8(b + 6) / 255., a: 1};
 			// Read in the width of the path.
 			let width = data.readFloatBE(b + 7);
 
 			b += 11;
 			// Allocate an array with <path_len> elements.
+			let b_min = null;
+			let b_max = null;
 			let plot = new Array(path_len);
 			for(let j = 0; j < path_len; j++)
 			{
-				plot[j] = {x: data.readFloatBE(b), y: data.readFloatBE(b + 4)};
-				b += 8;
+				plot[j] = {x: data.readFloatBE(b), y: data.readFloatBE(b + 4), r: data.readFloatBE(b + 8)};
+				if (b_min)
+				{
+					b_min.x = Math.min(plot[j].x, b_min.x);
+					b_max.x = Math.max(plot[j].x, b_max.x);
+					b_min.y = Math.min(plot[j].y, b_min.y);
+					b_max.y = Math.max(plot[j].y, b_max.y);
+				}
+				else
+				{
+					b_min = {x: plot[j].x, y: plot[j].y};
+					b_max = {x: plot[j].x, y: plot[j].y};
+				}
+				b += 12;
 			}
-			doc_display.path(GetPlotStr(plot)).attr({fill: "none", stroke: col, "stroke-width": width});
+			let bounds = {x: b_min.x - width, y: b_min.y - width, x2: b_max.x + width, y2: b_max.y + width,
+					width: b_max.x - b_min.x + 2 * width, height: b_max.y - b_min.y + 2 * width};
+			page_data.push({type: TYPE_PATH, bounds: bounds, colour: col, width: width, data: plot});
 		}
+		needsRedraw = true;
 	});
 }
 
